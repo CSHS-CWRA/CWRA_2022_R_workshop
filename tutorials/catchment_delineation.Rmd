@@ -1,0 +1,850 @@
+---
+title: 'Using R and WhiteboxTools for catchment delineation'
+author: |
+  | R.D. (Dan) Moore
+  | Department of Geography
+  | The University of British Columbia
+  | *email*: dan.moore@ubc.ca
+date: '`r format(Sys.Date(), "%Y-%b-%d")`'
+csl: hydrological-processes.csl
+header-includes:
+- \usepackage{lineno}
+- \linenumbers
+- \usepackage{setspace}\onehalfspacing
+- \usepackage{url}
+output:
+  bookdown::pdf_document2:
+    number_sections: FALSE
+  bookdown::html_document2:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: cerulean
+  bookdown::word_document2:
+    number_sections: FALSE
+    reference_docx: "rmd_template.docx"
+subtitle: ''
+bibliography: catchment_delineation.bib
+---
+
+```{R, include = FALSE}
+library(knitr)
+library(here)
+library(dplyr)
+library(tidyr)
+library(magrittr)
+library(bookdown)
+library(sf)
+library(raster)
+library(whitebox)
+library(CSHShydRology)
+library(viridis)
+library(ggplot2)
+```
+
+
+# Introduction
+
+A first step in many hydrologic investigations is to delineate the catchment boundary for a given point of interest (POI) on a stream. Catchment boundaries encompass the area within which any water reaching the surface, if allowed to flow over the surface without evaporating, would eventually drain through the stream past the POI. Catchment boundaries are conventionally defined by topographic divides, a.k.a. drainage divides or heights of land (note that in Britain the term watershed is used as a synonym for drainage divide).
+
+Prior to the widespread availability of digital elevation models (DEMs) and software packages to perform digital terrain analysis, topographic maps at an appropriate scale were normally to delineate the catchment area. Field investigations were often useful to ascertain the direction of water drainage in low-relief terrain, where contours would be widely spaced and inferred flow paths subject to relatively high uncertainty.
+
+Over the last three decades, the increasing availability of gridded DEMs and software to perform digital terrain analysis has facilitated a shift from manual delineation based on analogue contour maps to automated delineation based on DEMs. While routines incorporated in proprietary software packages by ESRI and other companies are in common usage, several free and open-source software (FOSS) packages also provide functions for catchment delineation; these include GRASS [@grassgis], SAGA GIS [@Conrad2015GMD], Tau-DEM [@taudem5] and WhiteboxTools [@whiteboxtools]. An advantage of using FOSS applications is that it promotes reproducibility by removing financial or other barriers to running a workflow. 
+
+Reproducibility of analyses is enhanced by using a programming language such as R or Python to develop integrated workflow [@Moore2017Confluence]. The R language, in particular, is popular in the hydrological community [@Slater2019HESS]. The use of R and associated software such as RStudio and R Markdown facilitates the development of integrated workflows that encompass the full chain of operations, from data acquisition and wrangling to data analysis to report generation.
+
+The objective of this document and exercise is to introduce the use of R and WhiteboxTools for catchment delineation. The article illustrates the process using two examples. The workflows described in this article draw require the following packages to be installed: **dplyr**, **magrittr**, **here**, **sf**, **raster**, **whitebox**, **CSHShydRology** and **viridis**.
+
+
+# Catchment delineation -- processing steps
+
+Catchment delineation involves the following steps:
+
+1. Remove sinks from the DEM
+2. Determine flow directions for each cell based on steepest descent
+3. Use the flow directions to determine the upslope contributing area for each cell. The result is often called a "flow accumulation" grid.
+4. "Snap" the pour points to the cell within a specified window that has the highest flow accumulation, which is assumed to lie on the channel network.
+5. Use the flow direction grid to identify all cells for which flow paths originating at that cell would flow through the pour point. These cells represent a raster version of the catchment area.
+6. Convert the raster catchment area to a polygon.
+
+In addition to the steps listed above, it is common to generate a channel network as well as the catchment boundaries. This step will be included in the examples presented below.
+
+
+# Example data sets
+
+The first example is based on a data set built into base R named `volcano`, which is 10-m-resolution DEM for Maunga Whau (Mt Eden) near Auckland, New Zealand. The data are stored as a matrix with 87 rows and 61 columns. The `ch_volcano_raster()` function in the **CSHShydRology** package converts the matrix into a *RasterLayer* object, with $x$ and $y$ coordinates that are consistent with the feature's easting and northing coordinates in UTM zone 60. 
+
+The second example is based on 1-m-resolution DEMs for the Upper Penticton Creek (UPC) experimental watersheds. The DEMs were based on Lidar imagery. One DEM covers the catchments areas for 240 and 241 Creeks, and another covers the catchment area for 242 Creek. The DEMs are available via a Zenodo repository [@Moore2021HPdatanote]. To reduce computational time, the UPC DEMs were resampled to a 10-m resolution.
+
+The DEMs were generated or acquired by a script name *00_compile_data.r*, which is in the "code" directory associated with this project. The unprocessed DEMs were saved in the "data" folder associated with the project, while the resampled DEMs for UPC were saved in the "output" folder.
+
+
+# Catchment delineation within R using **whitebox** functions
+
+## Overview
+
+This section describes the steps involved in catchment delineation based on a gridded DEM, and their implementation using functions from the **whitebox** package.
+
+Information about WhiteboxTools and its functions can be found via:
+
+* https://www.whiteboxgeo.com/manual/wbt_book/intro.html
+
+In particular, the manual provides descriptions of the algorithms used in the functions.
+
+More information on the **whitebox** package for R and its functions can be found via:
+
+* https://giswqs.github.io/whiteboxR/index.html
+
+A key difference between applying functions in R and WhiteboxTools functions is that the inputs and outputs for R functions are R objects. For example, the `focal()` functions takes a raster object as input (along with additional arguments) and returns a raster object. In contrast, input data and output arguments for WhiteboxTools functions are the names of files that contain the data.
+
+
+## Example DEM
+
+The DEM based on the built-in `volcano` data set is used for illustration. 
+
+```{r}
+# create name of input file
+fn_input_dem <- here::here("data", "volcano.tiff")
+
+# read DEM into an object
+vol_dem <- raster::raster(fn_input_dem)
+```
+
+Generate a contour map and a raster map.
+
+```{r, volcano-contour, fig.cap = fig_cap}
+fig_cap <- "Contour map of Maunga Whau. Contour interval = 10 m"
+par(tcl = -0.2, mgp = c(2, 0.5, 0))
+contour(vol_dem,
+  levels = seq(90, 200, 10),
+  col = "blue",
+  asp = 1,
+  axes = TRUE,
+  xlab = "UTM Easting (m)",
+  ylab = "UTM Northing (m)"
+)
+```
+
+
+```{r, volcano-raster, fig.cap = fig_cap}
+fig_cap <- "Raster plot of the Maunga Whau DEM. Grid resolution is 10 m"
+par(tcl = -0.2, mgp = c(2, 0.5, 0))
+plot(vol_dem,
+  asp = 1,
+  box = FALSE,
+  axes = FALSE,
+  legend.args = list(
+    text = "Elev. (m)",
+    line = 1
+  ),
+  legend.mar = 10
+)
+```
+
+
+## Sink removal
+
+### Definition, origin and consequences of sinks in a DEM
+
+A sink is a local topographic depression. When tracing flow paths through a DEM -- usually down the path of steepest descent -- any flow path that enters a sink will terminate at the low point of the sink. Sinks within DEMs can represent real features, such as prairie potholes or volcanic cones, or they may be artefacts of the DEM-generation process. 
+
+For hydrological simulation, it can be critical to account for the presence of sinks, as the areas draining into them are typically not connected to the channel network until they are filled to the point of spilling the low point in their local drainage divide. However, for purposes of determining gross drainage areas, they should be removed as a first processing step.
+
+
+### Approaches for removing sinks
+
+Two main approaches can be used to remove sinks. The first is to fill the sinks until they overflow. It is common to impose a slope on the filled areas so water would flow across them to generate continuous flow paths through the DEM. The second approach involves lowering cell elevations in order to breach the sink. The latter approach is often preferred because it minimizes the amount of change to the DEM.
+
+**whitebox** supports the first approach via following functions:
+
+1. `wbt_fill_depressions()`
+2. `wbt_fill_depressions_planchon_and_darboux()`
+3. `wbt_fill_depressions_wang_and_liu()`
+4. `wbt_fill_single_cell_pits()`
+
+**whitebox** supports the second approach via the following functions:
+
+5. `wbt_breach_depressions()`
+6. `wbt_breach_depressions_least_cost()`
+7. `wbt_breach_single_cell_pits()`
+
+Note that function 4 can be useful to apply before functions 5 or 6 if the DEM contains isolated deep sinks, to avoid having a deep "trench" cut into the DEM.
+
+
+### Application
+
+As can be seen in Figures \@ref(fig:volcano-contour) and \@ref(fig:volcano-raster), especially in the raster plot, the volcanic cone is a local topographic depression, or sink. Therefore, this DEM provides a good example for illustrating the different approaches to sink removal. 
+
+We first remove sinks by breaching. The first step is to create file names for the output DEMs.
+
+```{r}
+fn_single_cell_filled_dem <- here::here("output", "vol_dem_filled.tif")
+fn_dem_no_sinks <- here::here("output", "vol_dem_no_sinks.tif")
+```
+
+Now fill single-cell pits. Note that the arguments `dem` and `output` are file names, not R objects.
+
+```{r}
+wbt_fill_single_cell_pits(
+  dem = fn_input_dem,
+  output = fn_single_cell_filled_dem
+)
+```
+
+Finally, remove the sinks using the least-cost breaching algorithm. The argument `dist` is the maximum search distance for breach paths in cells. We set it somewhat arbitrarily to five times the DEM resolution.
+
+```{r}
+wbt_breach_depressions_least_cost(
+  dem = fn_single_cell_filled_dem,
+  output = fn_dem_no_sinks,
+  dist = 5*res(vol_dem)[1]
+)
+```
+
+Now look at the result, first as a raster image of the DEM following breaching of sinks.
+
+```{r, volcano-breachsinks, fig.cap = fig_cap}
+fig_cap <- paste(
+  "Raster plot of the Maunga Whau DEM following sink removal by breaching.",
+  "Grid resolution is 10 m"
+)
+# read in DEM from file
+dem_no_sinks <- raster::raster(fn_dem_no_sinks)
+
+# raster plot
+par(tcl = -0.2, mgp = c(2, 0.5, 0))
+plot(dem_no_sinks,
+  asp = 1,
+  box = FALSE,
+  axes = FALSE,
+  legend.args = list(
+    text = "Elev. (m)",
+    line = 1
+  ),
+  legend.mar = 10
+)
+```
+
+Now look at the DEM of difference between the sink-removed and original DEMs.
+
+```{r, volcano-diff-breachsinks, fig.cap = fig_cap}
+fig_cap <- paste(
+  "Raster plot of the Maunga Whau DEM following sink removal by breaching.",
+  "Grid resolution is 10 m"
+)
+# dem of difference
+dod <- dem_no_sinks - vol_dem
+
+# raster plot
+par(tcl = -0.2, mgp = c(2, 0.5, 0))
+plot(dod,
+  col = rev(viridis(255)),
+  asp = 1,
+  box = FALSE,
+  axes = FALSE,
+  legend.args = list(
+    text = expression(Delta*z ~  "(m)"),
+    line = 1
+  ),
+  legend.mar = 10
+)
+contour(dem_no_sinks,
+  add = TRUE,
+  col = "grey",
+  levels = seq(90, 200, 10)
+)
+```
+
+Now remove sinks by filling using the Planchon-Darboux algorithm.
+
+```{r}
+# file name for output
+fn_dem_filled <- here::here("output", "vol_dem_filled.tif")
+
+# run the function
+wbt_fill_depressions_planchon_and_darboux(
+  dem = fn_input_dem,
+  output = fn_dem_filled
+)
+```
+
+Now look at the result, first as a raster image of the DEM following filling of sinks.
+
+```{r, volcano-fill-sinks, fig.cap = fig_cap}
+fig_cap <- paste(
+  "Raster plot of the Maunga Whau DEM following sink removal by filling.",
+  "Grid resolution is 10 m"
+)
+# read in DEM from file
+dem_filled <- raster::raster(fn_dem_filled)
+
+# raster plot
+par(tcl = -0.2, mgp = c(2, 0.5, 0))
+plot(dem_filled,
+  asp = 1,
+  box = FALSE,
+  axes = FALSE,
+  legend.args = list(
+    text = "Elev. (m)",
+    line = 1
+  ),
+  legend.mar = 10
+)
+contour(dem_filled,
+  add = TRUE,
+  col = "blue",
+  levels = seq(90, 200, 10)
+)
+```
+
+Now look at the DEM of difference between the sink-removed and original DEMs.
+
+```{r, volcano-diff-fillsinks, fig.cap = fig_cap}
+fig_cap <- paste(
+  "Raster plot of the DEM of difference between Maunga Whau DEM following sink",
+  "removal by filling and the original DEM, along with contours based on the",
+  "original DEM. Grid resolution is 10 m"
+)
+
+# dem of difference
+dod <- dem_filled - vol_dem
+
+# raster plot
+par(tcl = -0.2, mgp = c(2, 0.5, 0))
+plot(dod,
+  col = rev(viridis(255)),
+  asp = 1,
+  box = FALSE,
+  axes = FALSE,
+  legend.args = list(
+    text = expression(Delta*z ~  "(m)"),
+    line = 1
+  ),
+  legend.mar = 10
+)
+contour(vol_dem,
+  add = TRUE,
+  col = "blue",
+  levels = seq(90, 200, 10)
+)
+```
+
+Figures \@ref(fig:volcano-diff-fillsinks) and \@ref(fig:volcano-diff-breachsinks) nicely illustrate the difference in operation and result between the two approaches. From this point on, we will continue the processing using the DEM resulting from the sink-breaching algorithm.
+
+
+## Flow directions
+
+For catchment delineation, flow directions are determined using the D8 (deterministic-8) method, which returns the direction of steepest descent from each cell to its neighbours. This step is performed by the `wbt_d8_pointer()` function.
+
+```{r}
+# create file name for flow direction grid
+fn_flow_dir <- here::here("output", "vol_flow_dir.tif")
+
+# apply 
+wbt_d8_pointer(
+  dem = fn_dem_no_sinks,
+  output = fn_flow_dir
+)
+```
+
+The flow directions are coded as $2^i$, where $i = 0, 1, 2, ..., 7$, $i = 0$ indicates flow to the east, and $i$ increases clockwise. 
+
+```{r, volcano-flowdir, fig.cap = fig_cap}
+fig_cap <- paste(
+  "Flow direction grid following sink removal by breaching.",
+  "Grid resolution is 10 m"
+)
+# look at output - first read output into a Raster object
+flow_dir <- raster::raster(fn_flow_dir)
+
+# raster plot
+plot(flow_dir)
+```
+
+
+## Flow accumulation
+
+The `wbt_d8_flow_accumulation()` function can take either a DEM (after removing sinks) or a flow direction grid as input. If a DEM is specified as input, the function will first determine flow directions. If a flow direction grid is used as input, the argument `pntr = TRUE` must be included. The default output is the number of upslope cells that ultimately drain through each grid cell. This can be changed to 'catchment area' or 'specific contributing area' via the `out_type` argument. See WhiteboxTools documentation for details.
+
+```{r}
+# create file name for flow accumulation grid
+fn_flow_acc <- here::here("output", "vol_flow_acc.tif")
+
+# apply function
+wbt_d8_flow_accumulation(
+  input = fn_flow_dir,
+  output = fn_flow_acc,
+  pntr = TRUE
+)
+```
+
+```{r, volcano-flowacc, fig.cap = fig_cap}
+fig_cap <- paste(
+  "Raster plot of the Maunga Whau flow accumulation grid.",
+  "Values shown are the number of contributing cells for each grid cell.",
+  "Grid resolution is 10 m"
+)
+# look at result
+fa <- raster(fn_flow_acc)
+plot(fa,
+  asp = 1,
+  box = FALSE,
+  axes = FALSE,
+  legend.args = list(
+    text = "Number of cells"
+  ),
+  legend.mar = 10
+)
+```
+
+```{r, volcano-flowacc-log10, fig.cap = fig_cap}
+fig_cap <- paste(
+  "Raster plot of the Maunga Whau flow accumulation grid.",
+  "Values shown are the base-10 logarithms of the number of contributing",
+  "cells for each grid cell.",
+  "Grid resolution is 10 m"
+)
+# log10 transformation
+plot(log10(fa),
+  axes = FALSE,
+  box = FALSE,
+  legend.args = list(
+    text = expression(log[10]*(n[cells]))
+  ),
+  legend.mar = 10
+)      
+```
+
+
+## Snap pour points
+
+Prior to determining the catchment areas for the points of interest along the stream, it is important to "snap" them to a grid cell along the gridded representation of the stream network. In practical terms, this operation involves searching within a defined window around the actual POI coordinates for the grid cell with the highest flow accumulation value.
+ 
+The points of interest along the stream, a.k.a, "pour points," must be in a spatial vector data file. Here, we use ESRI shapefile format. The first step, then, is to generate a shapefile containing the pour points. The following code chunk creates two test pour points and saves them to a file.
+
+```{r}
+# outlet points for catchment delineation - first as data frame
+test_outlet <- data.frame(x = c(300570, 300644),
+                          y = c(5916757, 5916557)) %>%
+  mutate(test_label = c("test_1", "test_2"))
+
+# create sf object from the data frame; set crs to UTM zone 60
+outlet_sf <- test_outlet %>% 
+  st_as_sf(coords = c("x", "y")) %>%
+  st_set_crs("EPSG:32760")
+
+# create file name and save pour point file
+fn_pp <- here::here("output", "volcano_poi.shp")
+write_sf(outlet_sf, fn_pp, delete_dsn = TRUE)
+```
+
+Next apply `wbt_snap_pour_points()`. There are four main arguments: 
+
+* `pour_pts`, the name of the shape file that contains the pour point locations; 
+* `flow_accum`, the name of the file containing the flow accumulation grid; 
+* `output`, the name of the file in which to store the snapped pour points; and 
+* `snap_dist`, which limits how far the algorithm will look for the cell with maximum flow accumulation. We set it here, somewhat arbitrarily, to 50 m. An appropriate value for this argument depends on the horizontal accuracies of both the DEM and the pour point locations.
+
+
+```{r}
+# specify name of output 
+fn_pp_snap <- here::here("output", "pp_snap.shp")
+
+# apply function
+wbt_snap_pour_points(
+  pour_pts = fn_pp,
+  flow_accum = fn_flow_acc,
+  output = fn_pp_snap,
+  snap_dist = 50
+)
+```
+
+
+## Delineate catchment
+
+There are two functions required for the final step. The first, `wbt_watershed()`, generates a raster image of the catchment; the second converts the raster image to vector polygons.
+
+The next code chunk performs the first step.
+
+```{r}
+# name of file to store catchments as a raster image
+fn_catchment_ras <- here::here("output", "vol_catchments.tiff")
+
+wbt_watershed(
+  d8_pntr = fn_flow_dir,
+  pour_pts = fn_pp_snap,
+  output = fn_catchment_ras
+)
+```
+
+Now generate a map. This version shows the points of interest with their original coordinates, not the snapped points.
+
+```{r, volcano-catch-ras, fig.cap = fig_cap}
+fig_cap <- paste(
+  "Delineated catchments in raster format.",
+  "Grid resolution is 10 m"
+)
+# look at result
+vol_catch_ras <- raster::raster(fn_catchment_ras)
+
+plot(vol_catch_ras, 
+  col = c("pink", "lightblue")
+)
+contour(vol_dem, 
+  add = TRUE
+)
+plot(outlet_sf, 
+  add = TRUE,
+  pch = 21:22,
+  bg = c("red", "blue"),
+  col = "black"
+)
+```
+
+
+The next code chunk converts the raster image to vector format.
+
+```{r}
+fn_catchment_vec <- here::here("output", "vol_catchments.shp")
+wbt_raster_to_vector_polygons(
+  input = fn_catchment_ras,
+  output = fn_catchment_vec
+)
+```
+
+Now generate a map to check. Again, the points of interest are shown at their original coordinates.
+
+```{r, volcano-catch-vec, fig.cap = fig_cap}
+fig_cap <- paste(
+  "Delineated catchments as vector polygons.",
+  "Grid resolution is 10 m"
+)
+# look at result - first read in file
+vol_catch_vec <- read_sf(fn_catchment_vec)
+
+# extract the geometry for plotting
+vol_catch_geo <- st_geometry(vol_catch_vec) 
+
+# plot polygons, use bbox for original dem to define plot extent
+plot(vol_catch_geo,
+  extent = st_bbox(vol_dem),
+  asp = 1,
+  col = c("pink", "lightblue") 
+)  
+contour(vol_dem,
+  add = TRUE
+)
+plot(outlet_sf, 
+  add = TRUE,
+  pch = 21:22,
+  bg = c("red", "blue"),
+  col = "black"
+)
+```
+
+
+## Delineate the channel network
+
+Similarly to the delineation of catchment areas, delineating channel networks involves two steps: the first generates a raster image of the channel network; the second converts the raster image to vector format.
+
+In the first step, the function `wbt_extract_streams()` has three main arguments: `flow_accum` is the file name for a flow accumulation grid, `output` is the file name for the resulting raster image, and `threshold` is the threshold flow accumulation for channel initiation. Here, the threshold has been set somewhat arbitrarily at 20. This value can be adjusted based on visual examination of the resulting network.
+
+```{r}
+fn_channel_ras <- here::here("output", "vol_channels.tif")
+wbt_extract_streams(
+  flow_accum = fn_flow_acc, 
+  output = fn_channel_ras, 
+  threshold = 20
+)
+```
+
+The next step converts the raster image to vector format. There are three main inputs: `streams`, the name of the file containing the raster image, `d8_pntr`, the name of the file containing the flow direction grid, and `output`, the name of the file in which the result should be saved.
+
+```{r}
+fn_channel_vec <- here::here("output", "vol_channels.shp")
+wbt_raster_streams_to_vector(
+  streams = fn_channel_ras,
+  d8_pntr = fn_flow_dir,
+  output = fn_channel_vec
+)
+```
+
+
+## Generate a map using base graphics
+
+The code chunk below generates a map of the delineated catchments and channel network, along with the snapped pour points and the elevation contours.
+
+```{r, volcano-map, fig.cap = fig_cap}
+fig_cap <- paste(
+  "Map of Maunga Whau showing elevation contours, snapped points of interest,",
+  "delineated catchments and the channel network."
+)
+# read in catchment polygons and cast to lines
+catchments <- st_read(fn_catchment_vec)
+catchment_outlines <- st_cast(catchments, 'MULTILINESTRING')
+
+# read in channels
+channels <- st_read(fn_channel_vec)
+
+# read in snapped pour points
+pp_snap <- st_read(fn_pp_snap)
+
+# plot
+contour(vol_dem, asp = 1, col = "grey")
+plot(pp_snap, 
+  pch = 16,
+  pal = c("brown", "darkgreen"),
+  add = TRUE
+)
+plot(st_geometry(channels),
+  col = "blue",
+  add = TRUE
+)
+plot(st_geometry(catchment_outlines), 
+  fill = NA,
+  col = c("brown", "darkgreen"),
+  add = TRUE
+)
+```
+
+
+# Running **whitebox** functions using **CSHShydRology** functions
+
+## Overview
+
+The **CSHShydRology** package has a set of functions that act as wrappers for incorporating the **whitebox** functions in R scripts. The functions all begin with `ch_wbt_` as a prefix.
+
+There is a helper function, `ch_wbt_filenames()`, which generates a set of default file names to be used as input and output to the **whitebox** functions. 
+
+One feature is that each **CHSHhydRology** function returns an R object, which facilitates checking the output of each step. Each function also includes error traps, such as checking that objects have the same coordinate reference system.
+
+Whereas **whitebox** contains six separate functions for removing sinks, the **CSHShydRology** package contains a single function that allows you to choose the algorithm as an argument. This approach facilitates comparison of the effects of the different algorithms in specific situations.
+
+There are also two plotting functions for checking the output, which use `ggplot()` to generate maps: `ch_checkchannels()`, which generates a plot of the contours and the channel network, and `ch_checkcatchments()`, which generates a map showing contours, the channel network, the pour points and the catchments. 
+
+
+## Example workflow using the UPC data sets and individual `ch_wbt_` functions
+
+The code chunks below provide an example workflow that uses the `ch_wbt_` functions sequentially. We first read in the resampled DEM that covers the catchments for 240 and 241 Creeks, which is stored in the "output" folder for the project. The coordinate reference system is UTM Zone 11. 
+
+```{r}
+fn_dem_240 <- here::here("output", "upc_dem_240_10.tif")
+dem_240 <- raster::raster(fn_dem_240)
+```
+
+Access the locations of the gauging stations; these will be the points of interest for the catchment delineation.
+
+```{r}
+# local file name for weir file
+fn_weirs <- here::here("data", "weirs.GeoJSON")
+weirs <- st_read(fn_weirs)
+
+# display weir locations
+weirs
+```
+
+There are three weirs, but the DEM only covers the catchment areas for two. The next code chunk filters the weirs to include only the ones covered by the DEM.
+
+```{r}
+# filter to exclude 242 Creek weir as it is not in the DEM extent
+two_weirs <- weirs %>%
+  dplyr::filter(wsc_names %in% c("240", "241"))
+two_weirs
+```
+
+Save the weir locations as a shapefile. Check to see whether the file already exists, and delete before writing if so, to avoid throwing an error.
+
+```{r}
+fn_pp <- here::here("output", "two_weirs.shp")
+if (!file.exists(fn_pp)) {
+  st_write(two_weirs, dsn = fn_pp)
+} else {
+  st_write(two_weirs, dsn = fn_pp, delete_dsn = TRUE)
+}
+```
+
+Plot the DEM with weir locations as a visual check.
+
+```{r}
+plot(dem_240,
+  asp = 1,
+  xlab = "UTM Easting (m)",
+  ylab = "UTM Northing (m)",
+  legend.args = list(
+    text = "Elev. (m)",
+    line = 1
+  ),
+  legend.mar = 10
+)
+plot(two_weirs, 
+  add = TRUE,
+  pch = 15:16,
+  col = "black"
+)
+```
+
+Generate default file names to simplify the function calls. The output of `ch_wbt_filenames()` is a list. 
+
+```{r}
+# create working directory to store files created by whitebox functions
+upc_wd <- here::here("output", "upc_240_241")
+ch_create_wd(upc_wd)
+
+# generate default file names
+fn <- ch_wbt_filenames(wd = upc_wd)
+```
+
+Extract the DEM resolution for use in later function calls.
+
+```{r}
+# extract the dem resolution
+dx <- res(dem_240)[1]
+dx
+```
+
+Remove sinks using the breach algorithm. `fn$dem_ns` contains the default file name for the DEM with sinks removed, and `fn$dem_fsc` contains the default file name for the DEM generated by filling single-cell pits.
+
+```{r}
+# remove sinks using the breach algorithm
+dem_ns <- ch_wbt_removesinks(
+  in_dem = fn_dem_240, 
+  out_dem = fn$dem_ns, 
+  method = "breach",
+  dist = 10*dx,
+  fn_dem_fsc = fn$dem_fsc
+)
+```
+
+Determine the flow accumulation and flow direction grids. Note that, unlike the `wbt_` functions, the `ch_wbt_` functions return an object that can be plotted or examined.
+
+```{r}
+# flow accumulation
+flow_acc <- ch_wbt_flow_accumulation(
+  fn_dem = fn$dem_ns, 
+  fn_flowacc = fn$flowacc
+)
+
+# check plot
+plot(flow_acc)
+```
+
+
+```{r}
+# flow direction
+flow_dir <- ch_wbt_flow_direction(
+  fn_dem = fn$dem_ns, 
+  fn_flowdir = fn$flowdir
+)
+
+# check plot
+plot(flow_dir)
+```
+
+Delineate the channel network. 
+
+```{r}
+# channel network
+channels_sf <- ch_wbt_channels(
+  fn_flowacc = fn$flowacc, 
+  fn_flowdir = fn$flowdir,
+  fn_channel_ras = fn$channel_ras, 
+  fn_channel_vec = fn$channel_vec,
+  threshold = 300
+)
+```
+
+Generate a plot to check using `ch_checkchannels()`.
+
+```{r}
+# check plot
+ch_checkchannels(
+  dem = dem_ns, 
+  channels = channels_sf, 
+  outlet = two_weirs,
+  contour_colour = "grey",
+  channel_colour = "lightblue",
+  pp_colour = "lightblue"
+) 
+```
+
+Now snap the pour points to the raster channel network.
+
+```{r}
+# apply function
+pour_points_sf <- ch_wbt_pourpoints(
+  pp_sf = two_weirs, 
+  fn_flowacc = fn$flowacc, 
+  fn_pp = fn$pp, 
+  fn_pp_snap = fn$pp_snap, 
+  snap_dist = 5*dx
+)
+
+# check output
+pour_points_sf
+```
+
+
+```{r}
+# catchment delineation
+catchments_sf <- ch_wbt_catchment(
+  fn_pp_snap = fn$pp_snap, 
+  fn_flowdir = fn$flowdir, 
+  fn_catchment_ras = fn$catchment_ras, 
+  fn_catchment_vec = fn$catchment_vec
+)
+```
+
+
+```{r}
+# check plot
+ch_checkcatchment(
+  dem = dem_ns, 
+  catchment = catchments_sf, 
+  outlet = pour_points_sf, 
+  channel_vec = channels_sf, 
+  bbox_type = "catchment",
+  channel_colour = "lightblue",
+  pp_colour = "violet",
+  cb_colour = "blue",
+  contour_colour = "darkgrey",
+  na_location = "bl",
+  plot_scale = FALSE
+)
+```
+
+
+## Using the one-step function
+
+As an alternative to running the sequence of functions illustrated in the preceding sections, the `ch_wbt_catchment_onestep()` function provides a shortcut. An example is provided below. The function returns the catchment polygons as an **sf** object and, by default, generates a map using `ggplot()`. To suppress the map, include `check_catchment = FALSE`.
+
+```{r}
+# create working directory for wbt output files
+wd_onestep <- here::here("output", "upc_onestep")
+ch_create_wd(wd_onestep)
+
+upc_catchments <- ch_wbt_catchment_onestep(
+  wd = wd_onestep,
+  in_dem = fn_dem_240,
+  pp_sf = two_weirs, 
+  sink_method = "fill", 
+  threshold = 300, 
+  snap_dist = 50,
+  channel_colour = "lightblue"
+)
+```
+
+
+\newpage
+
+# References {-}
+
+<div id="refs"></div>
+
+
+\newpage
+
+
+
+
+
+
