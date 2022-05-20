@@ -170,14 +170,13 @@ work through.
 - If you are finding these too easy, skip to the **Advanced R** section
 
 ## How to run the tutorials
-It's probably best to run the examples by  
- 1. reading the text before each one  
- 2. executing each line one at a time by putting your cursor in the line and hitting [Ctrl][Enter] 
+You can either 
 
-rather than by just executing the chunks. 
+- execute each line one at a time by putting your cursor in the line and hitting [Ctrl][Enter] 
+- execute each chunk separately
 
 When you are finished, you can `knit` the tutorial. You will get a .pdf
-which can be a manual.
+which will be a useful reference.
 
 ## Getting help
 - There is a lot of help in **RStudio**

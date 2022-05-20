@@ -94,16 +94,12 @@ The symbol (<-) *assigns* the value from one end of the arrow to the object at t
 <- symbol is only used to assign values to variables, while the = sign is also used to specify parameter values to
 functions. In *Rstudio*, you can insert <- by pressing [Alt][-].
 
-
-```{r variable assignment}
+Both "=" and "<-" work the same.
+```{r variable assignment1}
 a = 1
 a
 a <- 1
-a # see that <- and = gave the same result here
-5 -> a
 a 
-b <- a + 1
-b
 ```
 
 ### Functions
@@ -113,7 +109,7 @@ R operates by loading and creating objects and modifying them or parts of them w
 
 In R, functions are called using round brackets. In this example, the `rnorm` function is called, followed by the `mean` and `sd` (standard deviation) functions.
 ```{r running commands}
-a <- rnorm(n = 20, mean = 0, sd = 2) # sample a normal distribution of mean 0, sd 2, and 20 values
+a <- rnorm(n = 20, mean = 0, sd = 2) # sample a normal distribution of 20 values with mean = 0, sd = 2
 mean(a)                              # calculates the mean of values in vector a
 sd(a)                                # calculates standard deviation of a
 ```
@@ -179,6 +175,8 @@ day2 <- as.Date("01/06/2022", format = "%d/%m/%Y")
 interval <- day2 - day1
 interval
 ```
+### Categorical data
+
 
 
 ## Vectors, data frames, lists, arrays and matrices
@@ -437,6 +435,12 @@ are executed. You do this with the `if` statement and loops. These statements
 can help you when you want to process a lot of data.
 
 ### if statements
+The `if` statement consists of a test statement, which returns
+a Boolean value (`TRUE` or `FALSE`). If the result is `TRUE` then the
+following statment is executed. If it is `FALSE` then nothing is done, unless
+there is an `else` statement. In that case, the statement following the `else`
+would be executed. If you want the `if` to execute more than one line after
+the test, enclose the lines in braces `{}`.
 
 ```{r if statement}
 a <- 5
@@ -450,20 +454,33 @@ if (a < 2) {
 Here the printed statement indicates that "a is not less than 2", since we defined 'a' with a value of 5. This same code would print the other statement if we instead gave 'a' a value less than 2.
 
 Similarly, this `if` statement will check whether the number 4 is in our vector 'b', and print a statement (or not) accordingly.
+
+### ifelse
+Often you will want to apply an `if` to each element of a vector or a data frame column.
+The simplest way to do this is with the `ifelse` command, which has the syntax
+`ifelse(test, TRUE value, FALSE value)`. The test is applied to each element and either the TRUE value
+or the FALSE value is returned for each.
+
+
+You can do very useful things with `ifelse` on dataframes. For example, you could classify the flows
+based on their value. In this example, the flows are tested to see if they are within
+the lowest decile and a comment "low flow" is added if they are.
 ```{r}
-b <- c(1,2,4,8)
-if (4 %in% b) {
-  print(sprintf("4 is contained in %s, which is c(%s)","b",paste(b,collapse = ", ")))
-} else {
-    print(sprintf("4 is not contained in %s, which is c(%s)","b",paste(b,collapse = ", ")))
-}
-b <- seq(1,9,2)
-if (4 %in% b) {
-  print(sprintf("4 is contained in %s, which is c(%s)","b",paste(b,collapse = ", ")))
-} else {
-    print(sprintf("4 is not contained in %s, which is c(%s)","b",paste(b,collapse = ", ")))
-}
+decile <- quantile(CAN01AD002$flow, 0.1)
+decile
+CAN01AD002$comment <- ifelse(CAN01AD002$flow < decile, "low flow", "")
+head(CAN01AD002[which(CAN01AD002$comment == "low flow"),])
 ```
+You could also use the 
+
+
+
+
+
+
+
+
+
 
 ### Loops
 
@@ -681,11 +698,16 @@ graph_file <- "01AD002_annual_max_Q.png"
 ggsave(graph_file, width = 8, height = 5)
 ```
 
-## dplyr
-We showed a way of getting the annual max daily values, but
-the `dplyr` package is much more powerful in selecting, and managing your data.
 
-The `tidyverse` packages all use the pipe operator `%>%` to 
 
 \newpage
 # Challenge exercises {#challenges}
+
+## Challenge 1
+
+Using the `ifelse` function, create a new column "hydroyear"
+in the CAN01AD002 data frame. If the month is 10 or greater,
+the hydroyear is one greater than the year. Otherwise, it is the
+current year.
+
+## Ca
