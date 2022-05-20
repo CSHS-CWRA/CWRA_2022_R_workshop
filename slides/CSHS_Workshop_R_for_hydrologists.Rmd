@@ -162,5 +162,27 @@ and create the output
 
 
 
+## Basic R tasks
+The file `Introduction_to_R_Tutorial.Rmd` contains exercises to
+work through. 
+
+- If you haven't used **R** very much, start at the beginning
+- If you are finding these too easy, skip to the **Advanced R** section
+
+## How to run the tutorials
+It's probably best to run the examples by  
+ 1. reading the text before each one  
+ 2. executing each line one at a time by putting your cursor in the line and hitting [Ctrl][Enter] 
+
+rather than by just executing the chunks. 
+
+When you are finished, you can `knit` the tutorial. You will get a .pdf
+which can be a manual.
+
+## Getting help
+- There is a lot of help in **RStudio**
+- For online help, use https://rseek.org/.
+- Check the R reference card in the  /data directory
+
 
 

@@ -1,29 +1,27 @@
 ---
 title: 'Using R and WhiteboxTools for catchment delineation'
+subtitle: '**Not for circulation or citation**'
 author: |
   | R.D. (Dan) Moore
   | Department of Geography
   | The University of British Columbia
   | *email*: dan.moore@ubc.ca
 date: '`r format(Sys.Date(), "%Y-%b-%d")`'
-csl: hydrological-processes.csl
 header-includes:
 - \usepackage{lineno}
 - \linenumbers
 - \usepackage{setspace}\onehalfspacing
 - \usepackage{url}
 output:
-  bookdown::pdf_document2:
-    number_sections: FALSE
   bookdown::html_document2:
     toc: true
     toc_float: true
     number_sections: true
     theme: cerulean
+  bookdown::pdf_document2:
+    number_sections: FALSE
   bookdown::word_document2:
     number_sections: FALSE
-    reference_docx: "rmd_template.docx"
-subtitle: ''
 bibliography: catchment_delineation.bib
 ---
 
@@ -53,7 +51,354 @@ Over the last three decades, the increasing availability of gridded DEMs and sof
 
 Reproducibility of analyses is enhanced by using a programming language such as R or Python to develop integrated workflow [@Moore2017Confluence]. The R language, in particular, is popular in the hydrological community [@Slater2019HESS]. The use of R and associated software such as RStudio and R Markdown facilitates the development of integrated workflows that encompass the full chain of operations, from data acquisition and wrangling to data analysis to report generation.
 
-The objective of this document and exercise is to introduce the use of R and WhiteboxTools for catchment delineation. The article illustrates the process using two examples. The workflows described in this article draw require the following packages to be installed: **dplyr**, **magrittr**, **here**, **sf**, **raster**, **whitebox**, **CSHShydRology** and **viridis**.
+The objective of this document and exercise is to introduce the use of R and WhiteboxTools for catchment delineation. The exercise also introduces some of the objects and functions defined in the **raster** and **sf** packages as required in catchment delineation workflows.
+
+The article illustrates the process using two examples. The workflows described in this article draw require the following packages to be installed: **dplyr**, **magrittr**, **here**, **bookdown**, **sf**, **raster**, **whitebox**, **CSHShydRology** and **viridis**.
+
+
+# Setting up the workspace
+
+This file should be in the root directory for a project associated with this workshop, within a sub-directory named *document* or similar name. The project root directory should also contain directories named *data* and *output*. The *data* directory should contain the digital elevation models for Upper Penticton Creek.
+
+The following code chunk checks whether the *data* and *output* directories exist.
+
+```{r}
+# create path names for the directories
+data_dir <- here::here("data")
+out_dir <- here::here("output")
+```
+
+```{r}
+# check the paths
+data_dir
+out_dir
+```
+
+Check that the directories exist.
+
+```{r}
+# data_dir
+if (dir.exists(data_dir)) {
+  sprintf(paste(data_dir, "exists"))
+} else {
+  sprintf(paste(data_dir, "does not exist"))
+}
+```
+
+```{r}
+# out_dir
+if (dir.exists(out_dir)) {
+  sprintf(paste(out_dir, "exists"))
+} else {
+  sprintf(paste(out_dir, "does not exist"))
+}
+```
+
+Check that the Upper Penticton Creek DEMs exist. Their names are *gs_be240.tif* and *gs_be242.tif*. The first step is to create path names for the files.
+
+```{r}
+# create path names for the DEM files
+fn_dem <- c("gs_be240.tif", "gs_be242.tif")
+dem_paths <- file.path(data_dir, fn_dem)
+dem_paths
+```
+
+Check whether the DEM files exist in the *data* directory.
+
+```{r}
+# loop over path names for the DEMs
+for (i in seq_along(dem_paths)) {
+  if (file.exists(dem_paths[i])) {
+    print(paste(dem_paths[i], "exists"))
+  } else {
+    print(paste(dem_paths[i], "does not exist"))
+  }
+}
+```
+
+The other file that is required is one that contains the locations of the Water Survey of Canada gauging sites on the UPC study streams. A file containing this information in GeoJSON format (an open standard for storing spatial vector data); the file's name is *gs_weirs.GeoJSON*. 
+
+The next code chunk checks that the data file is available in the *data* directory.
+
+```{r}
+fn_weirs <- file.path(data_dir, "gs_weirs.GeoJSON")
+if (file.exists(fn_weirs)) {
+  print(paste(fn_weirs, "exists"))
+} else {
+  print(paste(fn_weirs, "does not exist"))
+}
+```
+
+# Example data sets
+
+## Maunga Whau
+
+The first example is based on a data set built into base R named `volcano`, which is 10-m-resolution DEM for Maunga Whau (Mt Eden) near Auckland, New Zealand Aotearoa. The data are stored as a matrix with 87 rows and 61 columns. 
+
+The `ch_volcano_raster()` function in the **CSHShydRology** package converts the matrix into a *RasterLayer* object, with $x$ and $y$ coordinates that are consistent with the feature's easting and northing coordinates in UTM zone 60. 
+
+The following code chunk creates the DEM and stores it in the *data* directory.
+
+```{r}
+# create raster DEM 
+vol_dem <- ch_volcano_raster()
+
+# file name for GeoTIFF file
+fn_vol_dem <- file.path(data_dir, "vol_dem.tif")
+
+# save the raster object if it does not already exist
+if (!file.exists(fn_vol_dem)) {
+  raster::writeRaster(vol_dem, fn_vol_dem)
+} 
+```
+
+
+## Upper Penticton Creek
+
+The second example is based on 1-m-resolution DEMs for the Upper Penticton Creek (UPC) experimental watersheds. The DEMs were based on Lidar imagery. One DEM covers the catchments areas for 240 and 241 Creeks, and another covers the catchment area for 242 Creek. The DEMs and the GeoJSON file containing the gauging station locations are available via a Zenodo repository [@Moore2021HPdatanote], but you can access them via Github.
+
+
+# Introduction to Raster objects
+
+In this exercise, we use the **raster** package for handling spatial raster data. However, a new package named **terra** has become available via CRAN, which has some advantages over **raster** in terms of processing speed and functionality. The following link leads to a comparison of the two packages (as of 2021-May-28):
+
+* https://www.seascapemodels.org/rstats/2021/05/28/terra-raster-comparison.html
+
+Now that the community is gaining experience with the new package and bugs and other issues become corrected, it is recommended that user consider shifting from **raster** to **terra**.
+
+
+## Types of **raster** objects
+
+There are three types of objects defined within the **raster** package: RasterLayer, RasterStack and RasterBrick.
+
+### RasterLayer 
+
+A RasterLayer contains the values and attributes for a single image. The values are stored as a matrix, and can be of various types, including numeric, character, factor and logical. 
+
+The attributes of a RasterLayer include the numbers of rows and columns, the extent (minimum and maximum values of the x and y dimensions) and the coordinate reference system. Note that that matrix containing the values is structured differently from an object of class `matrix` in that values are assigned row-wise rather than column-wise.
+
+The RasterLayer object can point to a file on disk that holds the values of the raster cells (for large objects), or hold these values in memory (for smaller objects). A RasterLayer can also contain just the attributes and not have any associated values.
+
+RasterLayer objects are S4 objects, and are structured around a series of nested levels of "slots," which contain the data and information about the object.
+
+### RasterStack and RasterBrick
+
+RasterStack objects contain a set of RasterLayer objects that have the same extent and resolution. They can be used to store multiple data layers (e.g., different spectral bands for satellite imagery, or time series of images for a given spectral band, or different climatic variables).
+
+Organizing RasterLayer objects in a RasterStack can be practical when dealing with multiple layers -- for example, to summarize their values (see `raster::calc()`) or in spatial modelling (see `raster::predict()`).
+
+Like a RasterStack, RasterBrick objects can contain multiple layers of raster data, but they are more tightly related. An important difference is that objects of class RasterBrick can refer to only a single (multi-layer) data file, whereas each layer in a RasterStack can refer to a separate file (or another band in a multi-band file).
+
+As a result of this difference, operations on a RasterBrick should process more quickly than on a RasterStack (irrespective of whether values are on disk or in memory). However, a `RasterStack` is more flexible as a single object can refer to layers that have values stored on disk (in multiple files) as well as in memory.
+
+## Attributes associated with a Raster\* object
+
+Some of the main attributes are summarized below. 
+
+```{r, echo = FALSE}
+table_cap <- "Summary of some of the main raster attributes stored in slots"
+slot_name <- c("title", "file", "data", "extent", "ncols", "nrows", "crs")
+data_type <- c(
+  "Character",
+  "Object of class '.RasterFile'",
+  "Object of class '.SingleLayerData' or  '.MultipleLayerData'",
+  "Object of Extent-class (analogous to a bounding box for sf objects)",
+  "Integer",
+  "Integer",
+  "Object of class 'CRS', i.e. the coordinate reference system"
+)
+rs_table <- data.frame(slot_name, data_type)
+names(rs_table) <- c("Slot name", "Data type")
+knitr::kable(rs_table, caption = table_cap)
+```
+
+
+### Coordinate reference system
+
+Several distinct standards are used to define coordinate reference systems, including PROJ.4, WKT (well-known text), EPSG (European Petroleum Specialty Group) and, most recently, PROJ.6. 
+
+The `crs` attribute of a Raster object contains the coordinate reference system, expressed as a proj4 string and WKT2. 
+
+The coordinate reference system can  be extracted directly from a Raster object in one of two ways:
+
+```{r}
+# use crs() extractor function
+crs(vol_dem)
+```
+
+```{r}
+# extract crs slot
+vol_dem@crs
+```
+
+As can be seen, the `crs` for a raster object is provided in both proj4string (PROJ.4) and WKT2 formats. These can be extracted as follows:
+
+```{r}
+proj4string(vol_dem)
+```
+
+```{r}
+wkt(vol_dem)
+```
+
+Note that the proj4string standard is now deprecated, but the newer PROJ.6 standard does not yet appear to be implemented in the **raster** package.
+
+
+### Extent
+
+The `extent` attribute defines the boundaries of the raster image. It can be extracted directly from the Raster\* object.
+
+```{r}
+vol_dem_ext <- extent(vol_dem)
+```
+
+The `extent` is an S4 object with four slots. The next code chunk displays its structure.
+
+```{r}
+str(vol_dem_ext)
+```
+
+The code chunk below extracts the extent into separate variables for later use.
+
+```{r}
+xmin <- vol_dem_ext@xmin
+xmax <- vol_dem_ext@xmax
+ymin <- vol_dem_ext@ymin
+ymax <- vol_dem_ext@ymax
+```
+
+### Numbers of columns, rows and cells
+
+The numbers of columns and rows are attributes in the raster, and can be accessed, for example, as `vol_dem@ncols` and `vol_dem@nrows`. They can also be extracted directly from the `RasterLayer` using the following extractor functions.
+
+```{r}
+nrow(vol_dem)
+ncol(vol_dem)
+```
+
+The total number of cells can be extracted using the `ncell()` function
+
+```{r}
+ncell(vol_dem)
+```
+
+
+### Resolution
+
+The resolution for the x and y coordinates can be extracted using the `res()` function. As seen below, the resolution in both directions is 10 m.
+
+```{r}
+res(vol_dem)
+```
+
+### `file`
+
+The `file` attribute is an S4 object that has a number of slots. The following code generates a complete list of the slots for the `file` attribute.
+
+```{r}
+vol_dem@file
+```
+
+For example, the slot `name` within the `file` attribute contains the path of the file that contains the raster image.
+
+```{r}
+vol_dem@file@name
+```
+
+In this case, the object is sufficiently small that it is stored in memory.
+
+
+## Visualizing raster data
+
+Raster objects can be visualized using both the `plot()` method or `ggplot()`. The `plot()` method renders more quickly, especially for large rasters, and is used in most of the examples in this installment. 
+
+As explained in the documentation for the `raster::plot()` method, most of the code for plotting a single Raster object is based on the `image.plot()` function in the **fields** package.
+
+The main argument of the `plot()` method is the name of a Raster\* object. As seen in the plot below, the raster is filled in with values row-wise, starting in the top left corner. This contrasts with matrices, which are filled column-wise.
+
+```{r, quick-map-dem, fig.cap = fig_cap}
+fig_cap <- "Simple raster plot to check the volcano DEM"
+plot(vol_dem)
+```
+
+We can modify the plot in various ways by providing additional arguments.
+
+```{r, mod-vol-plot, warning = FALSE, message = FALSE, fig.cap = fig_cap}
+fig_cap <- "Raster plot of volcano DEM with options to customize it"
+
+# change tick length and tick label position
+par(tcl = -0.2, mgp = c(2, 0.5, 0))
+plot(vol_dem, 
+  axes = FALSE,
+  box = FALSE,
+  legend.args = list(
+    text = "Elev. (m)",
+    line = 1
+  ),
+  legend.mar = 10
+)
+axis(1, pos = ymin, at = seq(xmin, xmax, 100))
+axis(2, pos = xmin, at = seq(0.9*ymin, 1.1*ymax, 100))
+rect(xmin, ymin, xmax, ymax)
+mtext(side = 1, "UTM Easting (m)", line = 2)
+mtext(side = 2, "UTM Northing (m)", line = -3)
+```
+
+The default colour palette is a reversed version of `terrain.colors`. Different palettes, can be used, as in the following example.
+
+```{r, raster-pal-options, fig.cap = fig_cap, warning = FALSE, message = FALSE}
+fig_cap <- "Illustration of different palettes for plotting raster images"
+
+# vector containing color-palette function calls as character strings
+dem_pal_formula <- c(
+  "heat.colors(255)",
+  "topo.colors(255)",
+  "grey(100:0/100)",
+  "viridis(255)"
+)
+
+# create a list containing the palettes
+dem_pal <- list()
+for (i in seq_along(dem_pal_formula)) {
+  dem_pal[[i]] <- eval(parse(text = dem_pal_formula[i]))
+}
+
+# store existing parameter settings
+opar <- par()
+par(mfrow = c(2, 2), tcl = -0.2, mgp = c(2, 0.5, 0), mar = c(2, 2, 2, 4))
+for (i in 1:4) {
+  plot(vol_dem, 
+    main = dem_pal_formula[i],
+    col = dem_pal[[i]],
+    axes = FALSE,
+    box = FALSE,
+    legend.args = list(
+      text = "Elev. (m)",
+      line = 1
+    ),
+   legend.mar = 6
+  )
+}
+
+# restore parameter setting to original values
+par(opar)
+```
+
+Contour maps can also be generated from Raster objects, as shown in the next code chunk.
+
+```{r, volcano-contour, fig.cap = fig_cap}
+fig_cap <- "Contour map of Maunga Whau. Contour interval = 10 m"
+par(tcl = -0.2, mgp = c(2, 0.5, 0))
+contour(vol_dem,
+  levels = seq(90, 200, 10),
+  col = "blue",
+  asp = 1,
+  axes = TRUE,
+  xlab = "UTM Easting (m)",
+  ylab = "UTM Northing (m)"
+)
+```
+
 
 
 # Catchment delineation -- processing steps
@@ -68,15 +413,6 @@ Catchment delineation involves the following steps:
 6. Convert the raster catchment area to a polygon.
 
 In addition to the steps listed above, it is common to generate a channel network as well as the catchment boundaries. This step will be included in the examples presented below.
-
-
-# Example data sets
-
-The first example is based on a data set built into base R named `volcano`, which is 10-m-resolution DEM for Maunga Whau (Mt Eden) near Auckland, New Zealand. The data are stored as a matrix with 87 rows and 61 columns. The `ch_volcano_raster()` function in the **CSHShydRology** package converts the matrix into a *RasterLayer* object, with $x$ and $y$ coordinates that are consistent with the feature's easting and northing coordinates in UTM zone 60. 
-
-The second example is based on 1-m-resolution DEMs for the Upper Penticton Creek (UPC) experimental watersheds. The DEMs were based on Lidar imagery. One DEM covers the catchments areas for 240 and 241 Creeks, and another covers the catchment area for 242 Creek. The DEMs are available via a Zenodo repository [@Moore2021HPdatanote]. To reduce computational time, the UPC DEMs were resampled to a 10-m resolution.
-
-The DEMs were generated or acquired by a script name *00_compile_data.r*, which is in the "code" directory associated with this project. The unprocessed DEMs were saved in the "data" folder associated with the project, while the resampled DEMs for UPC were saved in the "output" folder.
 
 
 # Catchment delineation within R using **whitebox** functions
@@ -97,49 +433,7 @@ More information on the **whitebox** package for R and its functions can be foun
 
 A key difference between applying functions in R and WhiteboxTools functions is that the inputs and outputs for R functions are R objects. For example, the `focal()` functions takes a raster object as input (along with additional arguments) and returns a raster object. In contrast, input data and output arguments for WhiteboxTools functions are the names of files that contain the data.
 
-
-## Example DEM
-
-The DEM based on the built-in `volcano` data set is used for illustration. 
-
-```{r}
-# create name of input file
-fn_input_dem <- here::here("data", "volcano.tiff")
-
-# read DEM into an object
-vol_dem <- raster::raster(fn_input_dem)
-```
-
-Generate a contour map and a raster map.
-
-```{r, volcano-contour, fig.cap = fig_cap}
-fig_cap <- "Contour map of Maunga Whau. Contour interval = 10 m"
-par(tcl = -0.2, mgp = c(2, 0.5, 0))
-contour(vol_dem,
-  levels = seq(90, 200, 10),
-  col = "blue",
-  asp = 1,
-  axes = TRUE,
-  xlab = "UTM Easting (m)",
-  ylab = "UTM Northing (m)"
-)
-```
-
-
-```{r, volcano-raster, fig.cap = fig_cap}
-fig_cap <- "Raster plot of the Maunga Whau DEM. Grid resolution is 10 m"
-par(tcl = -0.2, mgp = c(2, 0.5, 0))
-plot(vol_dem,
-  asp = 1,
-  box = FALSE,
-  axes = FALSE,
-  legend.args = list(
-    text = "Elev. (m)",
-    line = 1
-  ),
-  legend.mar = 10
-)
-```
+We use the Maunga Whau DEM to illustrate the workflow.
 
 
 ## Sink removal
@@ -178,8 +472,9 @@ As can be seen in Figures \@ref(fig:volcano-contour) and \@ref(fig:volcano-raste
 We first remove sinks by breaching. The first step is to create file names for the output DEMs.
 
 ```{r}
-fn_single_cell_filled_dem <- here::here("output", "vol_dem_filled.tif")
-fn_dem_no_sinks <- here::here("output", "vol_dem_no_sinks.tif")
+fn_input_dem <- file.path(data_dir, "vol_dem.tif")
+fn_single_cell_filled_dem <- file.path(out_dir, "vol_dem_filled.tif")
+fn_dem_no_sinks <- file.path(out_dir, "vol_dem_no_sinks.tif")
 ```
 
 Now fill single-cell pits. Note that the arguments `dem` and `output` are file names, not R objects.
@@ -201,7 +496,7 @@ wbt_breach_depressions_least_cost(
 )
 ```
 
-Now look at the result, first as a raster image of the DEM following breaching of sinks.
+Now look at the result, first as a raster image of the DEM following breaching of sinks. In the raster plot below, you can see the line of cells that have been incised into the DEM to link the low point in the crater with a flow path that leads to the edge of the DEM
 
 ```{r, volcano-breachsinks, fig.cap = fig_cap}
 fig_cap <- paste(
@@ -225,11 +520,12 @@ plot(dem_no_sinks,
 )
 ```
 
-Now look at the DEM of difference between the sink-removed and original DEMs.
+Now look at the DEM of difference between the sink-removed and original DEMs. The incised series of cells is more obvious.
 
 ```{r, volcano-diff-breachsinks, fig.cap = fig_cap}
 fig_cap <- paste(
-  "Raster plot of the Maunga Whau DEM following sink removal by breaching.",
+  "Raster plot of the Maunga Whau DEM following sink removal by breaching,",
+  "along with contour lines derived from the original DEM.",
   "Grid resolution is 10 m"
 )
 # dem of difference
@@ -248,7 +544,7 @@ plot(dod,
   ),
   legend.mar = 10
 )
-contour(dem_no_sinks,
+contour(vol_dem,
   add = TRUE,
   col = "grey",
   levels = seq(90, 200, 10)
@@ -272,7 +568,8 @@ Now look at the result, first as a raster image of the DEM following filling of 
 
 ```{r, volcano-fill-sinks, fig.cap = fig_cap}
 fig_cap <- paste(
-  "Raster plot of the Maunga Whau DEM following sink removal by filling.",
+  "Raster and contour plots of the Maunga Whau DEM following sink removal",
+  "by filling.",
   "Grid resolution is 10 m"
 )
 # read in DEM from file
@@ -338,7 +635,7 @@ For catchment delineation, flow directions are determined using the D8 (determin
 
 ```{r}
 # create file name for flow direction grid
-fn_flow_dir <- here::here("output", "vol_flow_dir.tif")
+fn_flow_dir <- file.path(out_dir,  "vol_flow_dir.tif")
 
 # apply 
 wbt_d8_pointer(
@@ -355,7 +652,7 @@ fig_cap <- paste(
   "Grid resolution is 10 m"
 )
 # look at output - first read output into a Raster object
-flow_dir <- raster::raster(fn_flow_dir)
+flow_dir <- raster::raster(fn_flow_dir) 
 
 # raster plot
 plot(flow_dir)
@@ -368,7 +665,7 @@ The `wbt_d8_flow_accumulation()` function can take either a DEM (after removing 
 
 ```{r}
 # create file name for flow accumulation grid
-fn_flow_acc <- here::here("output", "vol_flow_acc.tif")
+fn_flow_acc <- file.path(out_dir, "vol_flow_acc.tif")
 
 # apply function
 wbt_d8_flow_accumulation(
@@ -427,14 +724,20 @@ The points of interest along the stream, a.k.a, "pour points," must be in a spat
 test_outlet <- data.frame(x = c(300570, 300644),
                           y = c(5916757, 5916557)) %>%
   mutate(test_label = c("test_1", "test_2"))
+test_outlet
+```
 
-# create sf object from the data frame; set crs to UTM zone 60
+```{r}
+# create sf object from the data frame; set crs to UTM zone 60 using EPSG
 outlet_sf <- test_outlet %>% 
   st_as_sf(coords = c("x", "y")) %>%
   st_set_crs("EPSG:32760")
+outlet_sf
+```
 
+```{r}
 # create file name and save pour point file
-fn_pp <- here::here("output", "volcano_poi.shp")
+fn_pp <- file.path(out_dir, "volcano_poi.shp")
 write_sf(outlet_sf, fn_pp, delete_dsn = TRUE)
 ```
 
@@ -448,7 +751,7 @@ Next apply `wbt_snap_pour_points()`. There are four main arguments:
 
 ```{r}
 # specify name of output 
-fn_pp_snap <- here::here("output", "pp_snap.shp")
+fn_pp_snap <- file.path(out_dir, "vol_pp_snap.shp")
 
 # apply function
 wbt_snap_pour_points(
@@ -468,7 +771,7 @@ The next code chunk performs the first step.
 
 ```{r}
 # name of file to store catchments as a raster image
-fn_catchment_ras <- here::here("output", "vol_catchments.tiff")
+fn_catchment_ras <- file.path(out_dir, "vol_catchments.tiff")
 
 wbt_watershed(
   d8_pntr = fn_flow_dir,
@@ -505,7 +808,7 @@ plot(outlet_sf,
 The next code chunk converts the raster image to vector format.
 
 ```{r}
-fn_catchment_vec <- here::here("output", "vol_catchments.shp")
+fn_catchment_vec <- file.path(out_dir, "vol_catchments.shp")
 wbt_raster_to_vector_polygons(
   input = fn_catchment_ras,
   output = fn_catchment_vec
@@ -550,7 +853,7 @@ Similarly to the delineation of catchment areas, delineating channel networks in
 In the first step, the function `wbt_extract_streams()` has three main arguments: `flow_accum` is the file name for a flow accumulation grid, `output` is the file name for the resulting raster image, and `threshold` is the threshold flow accumulation for channel initiation. Here, the threshold has been set somewhat arbitrarily at 20. This value can be adjusted based on visual examination of the resulting network.
 
 ```{r}
-fn_channel_ras <- here::here("output", "vol_channels.tif")
+fn_channel_ras <- file.path(out_dir, "vol_channels.tif")
 wbt_extract_streams(
   flow_accum = fn_flow_acc, 
   output = fn_channel_ras, 
@@ -561,7 +864,7 @@ wbt_extract_streams(
 The next step converts the raster image to vector format. There are three main inputs: `streams`, the name of the file containing the raster image, `d8_pntr`, the name of the file containing the flow direction grid, and `output`, the name of the file in which the result should be saved.
 
 ```{r}
-fn_channel_vec <- here::here("output", "vol_channels.shp")
+fn_channel_vec <- file.path(out_dir, "vol_channels.shp")
 wbt_raster_streams_to_vector(
   streams = fn_channel_ras,
   d8_pntr = fn_flow_dir,
@@ -574,7 +877,7 @@ wbt_raster_streams_to_vector(
 
 The code chunk below generates a map of the delineated catchments and channel network, along with the snapped pour points and the elevation contours.
 
-```{r, volcano-map, fig.cap = fig_cap}
+```{r, volcano-map, fig.cap = fig_cap, warning = FALSE, message = FALSE}
 fig_cap <- paste(
   "Map of Maunga Whau showing elevation contours, snapped points of interest,",
   "delineated catchments and the channel network."
@@ -608,6 +911,85 @@ plot(st_geometry(catchment_outlines),
 ```
 
 
+# Introduction to **sf** objects
+
+In the workflow applied above, three spatial vector objects were created:
+
+1. spatial point data (pour points)
+2. spatial line data (channel network)
+3. spatial polygons (catchment polygons)
+
+Before the introduction of the **sf** package a few years ago, the main R package for handling spatial vector data was the **sp** package. As is the case with the **raster** package, **sp** objects are S4 objects. In contrast, **sf** objects are S3 objects and are, in fact, an extension of a data frame. The main distinguishing feature of an **sf** object is that one of the columns is a list-column that contains the geometry for each feature.
+
+For example, look at `outlet_sf`:
+
+```{r}
+head(outlet_sf)
+```
+
+As can be seen, there are two rows, one for each point, and two columns. The first column, `test_label`, contains the names of the points, and is a character vector. The second, named `geometry`, is a list-column that contains, no surprise, the geometry information for each object. In this case, both objects are POINT features, and the value in brackets are the x-y coordinates.
+
+Now look at `channels`.
+
+```{r}
+head(channels)
+```
+In this case, each row represents one stream segment. The geometry of each stream segment is a LINESTRING.
+
+As seen below, the `catchments` object contains two rows, one for each catchment. The catchment area for each is a MULTIPOLYGON.
+
+```{r}
+head(catchments)
+```
+
+Like Raster objects, **sf** objects also have a coordinate reference system, which can be extracted using the `st_crs()` function.
+
+```{r}
+st_crs(catchments)
+```
+
+As seen in the next three code chunks, the coordinate reference system can be extracted based on the EPSG, WKT and PROJ.4 standards, as needed.
+
+```{r}
+st_crs(catchments)$epsg
+```
+
+```{r}
+st_crs(catchments)$wkt
+```
+
+
+```{r}
+st_crs(catchments)$proj4string
+```
+
+
+The area of a polygon can be extracted using the `st_area()` function.
+
+```{r}
+ca <- st_area(catchments)
+ca
+```
+
+The result has class "units", which means it is a numeric vector that has the units of measurement as an attributed. The components can be extracted as follows.
+
+```{r}
+ca_vals <- as.numeric(ca)
+ca_vals
+```
+
+The units can be extracted using the `units()` function. The result is a list with two components: `numerator` and `denominator`.
+
+```{r}
+ca_units <- units(ca)
+str(ca_units)
+```
+
+For more information on the **sf** package and its application in hydrologic analyses, see the CSHS webinar on the topic:
+
+* https://cshs.cwra.org/en/cshs-hydrology-spatialprocessing/
+
+
 # Running **whitebox** functions using **CSHShydRology** functions
 
 ## Overview
@@ -618,32 +1000,58 @@ There is a helper function, `ch_wbt_filenames()`, which generates a set of defau
 
 One feature is that each **CHSHhydRology** function returns an R object, which facilitates checking the output of each step. Each function also includes error traps, such as checking that objects have the same coordinate reference system.
 
-Whereas **whitebox** contains six separate functions for removing sinks, the **CSHShydRology** package contains a single function that allows you to choose the algorithm as an argument. This approach facilitates comparison of the effects of the different algorithms in specific situations.
+Whereas **whitebox** contains seven separate functions for removing sinks, the **CSHShydRology** package contains a single function that allows you to choose the algorithm as an argument. This approach facilitates comparison of the effects of the different algorithms in specific situations.
+
+The functions that generate the channel network and the catchment polygons combine the separate steps of generating a raster image and then converting it to a spatial vector object.
 
 There are also two plotting functions for checking the output, which use `ggplot()` to generate maps: `ch_checkchannels()`, which generates a plot of the contours and the channel network, and `ch_checkcatchments()`, which generates a map showing contours, the channel network, the pour points and the catchments. 
 
 
 ## Example workflow using the UPC data sets and individual `ch_wbt_` functions
 
-The code chunks below provide an example workflow that uses the `ch_wbt_` functions sequentially. We first read in the resampled DEM that covers the catchments for 240 and 241 Creeks, which is stored in the "output" folder for the project. The coordinate reference system is UTM Zone 11. 
+The code chunks below provide an example workflow that uses the `ch_wbt_` functions sequentially. We first read in the Lidar-derived DEM that covers the catchments for 240 and 241 Creeks, which is stored in the "output" folder for the project. The DEM has a resolution of 1 m in both x and y directions. The coordinate reference system is UTM Zone 11.
 
 ```{r}
-fn_dem_240 <- here::here("output", "upc_dem_240_10.tif")
-dem_240 <- raster::raster(fn_dem_240)
+fn_dem_240_1m <- file.path(data_dir, "gs_be240.tif")
+dem_240_1m <- raster::raster(fn_dem_240_1m)
+```
+
+To reduce computing time, we resample the DEM to a 10-m resolution. The first step is to create an empty RasterLayer object to serve as a template.
+
+```{r}
+# first create a raster template with desired resolution
+dem_ext <- extent(dem_240_1m)
+dem_ras <- raster::raster(ext = dem_ext, crs = crs(dem_240_1m), res = 10)
+```
+
+The next step is to apply the `resample()` function from the **raster** package.
+
+```{r}
+# now resample the original DEM to the template
+dem_240 <- raster::resample(dem_240_1m, dem_ras)
+```
+
+```{r}
+# check characteristics of resampled DEM
+extent(dem_240)
+crs(dem_240)
+res(dem_240)
 ```
 
 Access the locations of the gauging stations; these will be the points of interest for the catchment delineation.
 
 ```{r}
 # local file name for weir file
-fn_weirs <- here::here("data", "weirs.GeoJSON")
+fn_weirs <- file.path(data_dir, "gs_weirs.GeoJSON")
 weirs <- st_read(fn_weirs)
+```
 
+```{r}
 # display weir locations
 weirs
 ```
 
-There are three weirs, but the DEM only covers the catchment areas for two. The next code chunk filters the weirs to include only the ones covered by the DEM.
+There are three weirs, but the DEM only covers the catchment areas for two. The next code chunk filters the weirs to include only the ones covered by the DEM. A convenient feature of **sf** objects is that, because they are extended data frames, one can process them using functions in **dplyr** and other packages.
 
 ```{r}
 # filter to exclude 242 Creek weir as it is not in the DEM extent
@@ -652,7 +1060,7 @@ two_weirs <- weirs %>%
 two_weirs
 ```
 
-Save the weir locations as a shapefile. Check to see whether the file already exists, and delete before writing if so, to avoid throwing an error.
+Save the weir locations as an ESRI shapefile. Check to see whether the file already exists, and delete before writing if so, to avoid throwing an error.
 
 ```{r}
 fn_pp <- here::here("output", "two_weirs.shp")
@@ -665,7 +1073,12 @@ if (!file.exists(fn_pp)) {
 
 Plot the DEM with weir locations as a visual check.
 
-```{r}
+```{r, dem-240-check, message = FALSE, warning = FALSE, fig.cap = fig_cap}
+fig_cap <- paste(
+  "Map to check the resampled DEM for 240 and 241 Creeks.",
+  "The gauging station locations are plotted as black filled symbols"
+)
+
 plot(dem_240,
   asp = 1,
   xlab = "UTM Easting (m)",
@@ -687,7 +1100,7 @@ Generate default file names to simplify the function calls. The output of `ch_wb
 
 ```{r}
 # create working directory to store files created by whitebox functions
-upc_wd <- here::here("output", "upc_240_241")
+upc_wd <- file.path(out_dir, "upc_240_241")
 ch_create_wd(upc_wd)
 
 # generate default file names
@@ -702,12 +1115,22 @@ dx <- res(dem_240)[1]
 dx
 ```
 
-Remove sinks using the breach algorithm. `fn$dem_ns` contains the default file name for the DEM with sinks removed, and `fn$dem_fsc` contains the default file name for the DEM generated by filling single-cell pits.
+Remove sinks using the breach algorithm. `fn_dem_240` contains the name of the file containing the original DEM, `fn$dem_ns` contains the default file name for the DEM with sinks removed, and `fn$dem_fsc` contains the default file name for the DEM generated by filling single-cell pits.
+
+We first need to save the resampled DEM to a file so it can be read by the WhiteboxTools functions.
 
 ```{r}
+# save resampled DEM to a file
+fn_dem_resamp <- file.path(out_dir, "dem_resamp.tif")
+
+# check whether file exists
+if (!file.exists(fn_dem_resamp)) {
+  writeRaster(dem_240, fn_dem_resamp)
+}
+
 # remove sinks using the breach algorithm
 dem_ns <- ch_wbt_removesinks(
-  in_dem = fn_dem_240, 
+  in_dem = fn_dem_resamp, 
   out_dem = fn$dem_ns, 
   method = "breach",
   dist = 10*dx,
@@ -755,7 +1178,9 @@ channels_sf <- ch_wbt_channels(
 
 Generate a plot to check using `ch_checkchannels()`.
 
-```{r}
+```{r, channel-check, fig.cap = fig_cap}
+fig_cap <- "Map to check channel network generated from the DEM"
+
 # check plot
 ch_checkchannels(
   dem = dem_ns, 
@@ -767,7 +1192,7 @@ ch_checkchannels(
 ) 
 ```
 
-Now snap the pour points to the raster channel network.
+Now snap the pour points to the raster channel network, using five times the DEM resolution to define the search window.
 
 ```{r}
 # apply function
@@ -795,7 +1220,8 @@ catchments_sf <- ch_wbt_catchment(
 ```
 
 
-```{r}
+```{r, check-catchment, fig.cap = fig_cap}
+fig_cap <- "Map to visually check delineated catchment polygons"
 # check plot
 ch_checkcatchment(
   dem = dem_ns, 
@@ -804,8 +1230,8 @@ ch_checkcatchment(
   channel_vec = channels_sf, 
   bbox_type = "catchment",
   channel_colour = "lightblue",
-  pp_colour = "violet",
-  cb_colour = "blue",
+  pp_colour = c("lightblue", "pink"),
+  cb_colour = c("blue", "red"),
   contour_colour = "darkgrey",
   na_location = "bl",
   plot_scale = FALSE
@@ -815,33 +1241,55 @@ ch_checkcatchment(
 
 ## Using the one-step function
 
-As an alternative to running the sequence of functions illustrated in the preceding sections, the `ch_wbt_catchment_onestep()` function provides a shortcut. An example is provided below. The function returns the catchment polygons as an **sf** object and, by default, generates a map using `ggplot()`. To suppress the map, include `check_catchment = FALSE`.
+As an alternative to running the sequence of functions illustrated in the preceding sections, the `ch_wbt_catchment_onestep()` function provides a shortcut. An example is provided below. The function returns the catchment polygons as an **sf** object and, by default, generates a map using `ggplot()`. To suppress the map, include `check_catchment = FALSE` as an argument.
 
-```{r}
+```{r, onestep-example, fig.cap = fig_cap}
+fig_cap <- "Map to check output from the one-step function"
 # create working directory for wbt output files
-wd_onestep <- here::here("output", "upc_onestep")
+wd_onestep <- file.path(out_dir, "upc_onestep")
 ch_create_wd(wd_onestep)
 
 upc_catchments <- ch_wbt_catchment_onestep(
   wd = wd_onestep,
-  in_dem = fn_dem_240,
+  in_dem = fn_dem_resamp,
   pp_sf = two_weirs, 
   sink_method = "fill", 
   threshold = 300, 
-  snap_dist = 50,
-  channel_colour = "lightblue"
+  snap_dist = 5*dx,
+  channel_colour = "lightblue",
+  na_location = "bl"
 )
 ```
 
 
-\newpage
+# Exercises
+
+## Explore the effect of `snap_dist` for the 240 and 241 catchments
+
+Re-run the workflow using the separate `ch_wbt` functions, with different values for the `snap_dist` parameter -- e.g., `dx`, `10*dx` and `20*dx`. 
+
+When you run the workflow using `snap_dist = dx`, try running `ch_checkcatchment()` with and without the argument `bbox_type = "contour"`.
+
+Use `st_area()` to extract the catchment areas for comparison among the options.
+
+
+## Run the workflow for the 242 Creek catchment
+
+Read in the the DEM for the 242 Creek catchment from the "data" folder. The file name is *gs_be242.tif*.
+
+Re-run the workflow to generate the catchment polygon using (a) the original DEM with 1-m resolution, (b) a resampled DEM with 10-m resolution, and (c) a resampled DEM with 25-m resolution (i.e., similar to the resolution of the Canadian DEM product).
+
+Use base graphics to generate a plot that includes the three catchment boundaries. A suggested approach follows:
+
+1. Use `contour()` to plot the contours using grey lines.
+2. Use `plot()` with `add = TRUE` to add the channel network based on the original 1-m-resolution DEM.
+3. Use three calls of `plot()` with `add = TRUE` to add the catchment polygons. Specify a different colour for each. 
+
+Use `st_area()` to extract the catchment areas for the different resolutions. Summarize them in a table. How much do they differ?
 
 # References {-}
 
 <div id="refs"></div>
-
-
-\newpage
 
 
 

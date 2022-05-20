@@ -1,0 +1,691 @@
+---
+title: "Introduction to R Tutorial"
+author: "R. Chlumsky and Kevin Shook"
+date: "June 4, 2022"
+output: pdf_document
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction to R Tutorial
+
+This beginner R tutorial is intended to provide some background training on using **R** for new users 
+* Navigating RStudio
+* Basic R Syntax
+* Data types in R
+* Getting help in R
+* Installing and Exploring Packages
+* Data checking and sample data sets
+* Creating plots (base and ggplot)
+
+
+
+## How this document works
+
+This document was generated using **[R Markdown](https://rmarkdown.rstudio.com/articles_intro.html)**. This is a great tool for code transparency and data analysis, because the code blocks, code outputs, and your comments are "knit" into a single document! 
+
+This document will have a number of headings, text blocks (like this one), and code blocks that are run as the document is compiled. This allows you to see the script and output in one document (plus the code gets run and checked for errors as the document is made, which helps to reduce typos in the document code sections).
+
+If youn just one to run one line in the chunk you can place your cursor in one line and press CTRL+ENTER to run that one line (CMD+ENTER for Mac). Here's an example with just one line
+
+```{r comment example}
+# this is a comment in R. It is preceded by an octothorpe (or pound symbol, 
+# or hashtag, depending on your generation).
+
+print("This is a line of code with text in it, preceeded by ## in the output printout.")
+```
+
+
+Note: when you see the pound sign (#, aka octothorpe or "hash") next to a line of code, what follows to the right is a text comment that does not affect the code. Commenting is an important part of remembering what complex lines of code are meant to do!
+
+## Where are you working?
+
+One of the most common issues that new R users encounter is understanding the working directory. Your working directory is the folder location where your R session is operating from, and is where all files are assumed to be (and written to) unless otherwise specified. You can check your working directory with the command `getwd()`. You can also change the working directory with `setwd()`. Alternatively, if you are working in RStudio, your Files window can be used to view Files and navigate the working directory (same Pane where you can find Plots/Packages/Help/Viewer). If you click on *Files --> More*, you can see options to set or go to your working directory. Take a moment to check this before proceeding with this document.
+
+## Getting Help in R
+
+One of the first things to know about R and RStudio is where to go for help. Almost all functions that you come across in R will come with documentation and examples to help you understand them. They can be accessed with either the `help()` function (e.g. `help(rep)`), or by using a question mark in front of the function name (e.g. `?rep`). 
+
+```{r getting help, eval=TRUE}
+# get help on command, like the variance function 'rep()'
+help(rep)
+?rep
+```
+
+If you don't quite know the name of a function, two "?" question marks followed by a guess will search for all the related topics. 
+
+To search for all the help on calculating the variance, try this
+```{r}
+?? variance
+```
+
+
+Finally, if you place your cursor within the function name in your chunk and press **F1** on your keyboard, the documentation will again come up. 
+
+If you are using the RStudio interface, the help for functions should appear on the right side of your screen in the Help menu. If you don't see the Files/Plots/Help menu, then at the top menu, click on *View --> Panes --> Show All Panes*, and your layout should be restored.
+
+
+For more resources, check out the CRAN website (<https://cran.r-project.org/>) for information, documentation, etc. StackOverflow and similar forums are also extremely helpful for R!
+
+
+\newpage
+## Basic R Syntax {#basicsyntax}
+
+### Basic Arithmetic
+
+Let's try some basic arithmetic 
+
+```{r basic arithmetic}
+1 + 1
+3 - 1
+2 * 2
+4 / 3
+```
+
+### Variables
+Like all programming languages, **R** allows you to store values in named variables.
+**R** is not strict in its definition of data types, so you can assign and re-assign the data types to variables at your whim.
+
+The symbol (<-) *assigns* the value from one end of the arrow to the object at the point of the arrow. This method is directional, but you can also use the equal sign (=) as a left-only equivalent. Note that using
+<- is considered to be better style in **R** (the reasons are complicated), so you should be using it and that the
+<- symbol is only used to assign values to variables, while the = sign is also used to specify parameter values to
+functions. In *Rstudio*, you can insert <- by pressing [Alt][-].
+
+
+```{r variable assignment}
+a = 1
+a
+a <- 1
+a # see that <- and = gave the same result here
+5 -> a
+a 
+b <- a + 1
+b
+```
+
+### Functions
+
+You've seen data stored in objects. So how can we do more than just perform arithmetic on these objects?
+R operates by loading and creating objects and modifying them or parts of them with functions.
+
+In R, functions are called using round brackets. In this example, the `rnorm` function is called, followed by the `mean` and `sd` (standard deviation) functions.
+```{r running commands}
+a <- rnorm(n = 20, mean = 0, sd = 2) # sample a normal distribution of mean 0, sd 2, and 20 values
+mean(a)                              # calculates the mean of values in vector a
+sd(a)                                # calculates standard deviation of a
+```
+
+You can create your own **R** functions, which is very useful as it makes your
+work even more reproducible. The functions can
+be stored in an **R** package
+
+
+### Data Exploration and Data Types
+
+Here are some commands to check what type of data you are dealing with, and help you convert between different types.
+
+```{r data types}
+# what class of variable is it?
+b <- 6
+class(b)
+
+# what 'typeof' value is b?
+typeof(b) # 'double' is a type of number (numeric value)
+
+b <- "hello, world" # change the value assigned to b to a character value
+b
+
+typeof(b) # this has now changed from numeric/double
+
+# convert between data types
+as.numeric("501") + 1  # convert quoted string to numeric and add 1
+round(5.6) # round to integer
+floor(5.6) # round down to integer
+# as.numeric(b) # will produce an error
+# as.character(a) + "_" # will produce an error
+# as.character(a) && "_" # will produce an error
+paste0(as.character(a),"_","hello") # one way to combine strings
+```
+
+Now that we've started re-assigning values to variables, it's useful to recall their new values. On the upper-right portion of your screen in RStudio, the **Environment** tab shows the values of all user-defined variables, and it even reminds us of our user-defined function.
+
+### Working with Text
+
+R can read, write, and modify strings of text. Here are just two examples. We will come back to working with text once we start generating labels for plots.
+```{r text operations}
+# write a statement with any format - substitute values from any type
+a <- 5
+paste0(as.character(a)," dollars in my pocket")
+sprintf("I have $%.2f in my pocket, now I am %s!",a,"rich")
+```
+
+In the line above, the `sprintf` function (also common in other languages) produces a formatted string from the inputs. The first place where we tell sprintf to insert formatted text is "%.2f"; % is a special character telling sprintf to look for the format to use, and ".2f" is a fixed numeric format with 2 decimal places. Later, we use "%s" as a general string insertion point. Then we supply, in order, variable a as a numeric for the first "%.2f" location, and the string "rich" for the "%s" location. See the help for the sprintf function for more common format types.
+
+### Dates
+**R** is excellent at working with dates (and times). There is a built-in "date" data
+type. You can convert a character date to a `date` type using the function `as.Date()`.
+`date` values can be used for arithmetic.
+
+If you don't tell `as.Date` the format, it will guess. However the guess may be wrong,
+especially when you are using US date formats. You can specify the format using
+the symbols shown below. If you want to see all of the available formatting symbols, use the
+command `? strptime`.
+```{r}
+day1 <- as.Date("1900-01-01")
+day2 <- as.Date("01/06/2022", format = "%d/%m/%Y")
+interval <- day2 - day1
+interval
+```
+
+
+## Vectors, data frames, lists, arrays and matrices
+
+A single valued variable, such as the ones above (also known as a scalar), is called an *atom* . Multiple atoms come together to form a set of values, called a **vector**. Multiple vectors form a **matrix** or **data frame**.
+
+`c()` is the concatenate function, taking multiple atoms separated by commas and creating a new vector. 
+We saw above how we can use addition or multiplication on an atom. We can also perform a single operation on all values in a vector. Let's perform apply arithmetic on the new vector **a**.
+```{r vector operations}
+a <- c(1,2,3,4,5)
+a
+b <- a / 2
+b
+b <- sqrt(a)       # uses built-in square root function on all values of a
+b
+```
+
+**R** has built-in functions that are also helpful in generating vectors, matrices, data frames, etc.
+
+Data frames are the most useful data structure in **R** and is created by putting together
+vectors. Each vector becomes a column in the data frame, and can be any data type.
+This is what makes data frames so useful. The command `data.frame` is used to construct
+a data frame from individual vectors. Note that all of the vectors have to have the same
+number of values. The function `length()` is useful to get the number of values
+in a vector.
+
+In this example we create 2 vectors, one containing dates and the other containing
+numeric values, and put them in the same data frame
+
+```{r create vectors and datrames}
+
+date <- seq(day1, day2, by = 1)
+value <- runif(length(date))
+
+df <- data.frame(date, value)
+summary(df)
+```
+
+If you click on `df` in the **Environment** tab, you can see the values.
+This is _really_ useful.
+
+
+### Subsetting Vectors
+
+It's important to be able to subset vectors, to extract specific values. To do this, we use the square brackets "[ ]". They are not to be confused with () or {}, which each have their own special uses, as discussed above. The **length()** function returns the length of a vector.
+
+
+```{r subsetting vectors}
+# sequence from 1 to 30, jumping by a value of 2 (instead of the default 1)
+a <- seq(1, 30, by = 2)
+a
+length(a) # get the length of vector a (number of values)
+
+# subset by location
+a[1] # first value in the vector
+a[c(1,2)] # first and second value in the vector
+a[c(1,2,3)] # note the use of c() to specify multiple values
+a[1:3] 
+a[-1]  # all values without the first one
+a[c(-1, -2, -3)] # omits the first 3 slements
+```
+
+### Using Booleans
+
+Boolean operators refer to greater than (>), less than (<), or equal to (==).
+Other operators are greater than *or* equal to (>=), and not equal to (!=)
+```{r boolean checks for atoms}
+1 > 3
+1 < 3
+1 <= 3 # less than or equal to
+1 != 3
+1 == 1
+```
+Note: **<=** looks very similar to **<-** but they are nothing alike.
+
+We can also apply these basic operations with vectors, as shown below. In **R**, this will automatically apply the function `>` for all elements provided.
+
+```{r boolean checks for vectors} 
+c <- seq(1,10)
+c > 5
+```
+
+You can use Booleans to perform subsetting operations (i.e. extract values by conditions).
+```{r boolean subsetting}
+a <- seq(1,10,2)
+b <- seq(2,10,2)
+a
+b
+
+a > 5 # which values are greater than 5?
+a[ a > 5] # same as above, but returns the values of a that meet the criteria
+a[(a >= 3) & (a < 8)] # multiple conditions for subsetting, take values >=3 and <8 only
+subset(a, a >= 3 & a < 8) # same operation with the subset function
+a[which(a >= 3 & a < 8)] # same operation as above with the which function
+
+which( a >= 3 & a < 8) # returns the index values *which* meet the criteria specified
+any(a %in% b)  # check if any values of a exist in b (FALSE, since we have evens and odds)
+```
+
+
+### Working with data frames
+
+The same principles that work on selecting and subsetting vectors also work
+with data frames (and arrays and matrices).
+Note that the `length()` function is not useful as it just returns the number of
+variables(columns) in a data frame.
+```{r data frame and matrix}
+length(df)
+dim(df)    # returns [number of rows, number of columns]
+nrow(df)   # number of rows
+ncol(df)   # number of columns
+```
+
+Subsetting data frames, as with vectors, uses the square brackets "[ ]", but instead of one value, you list the desired row and column, separated by a comma. Note that the row is specified first, and the column second. Calling a row of a dataframe will return a mini dataframe with just the one row
+```{r matrix reference}
+df[2, 2]   # second row, second columns
+
+df[2,] # leaving an entry blank will return the entire row or column specified
+ 
+```
+
+You can select any number of rows and/or columns
+```{r more data frame references}
+df[1:3, 2]                # rows 1-3, column 2
+df[4:8,]                  # rows 4-8, all columns
+df[c(1,3,5), 1]           # rows 1,3,5, column 1
+```
+
+You can also subset data frames by specifying the column names using "$"
+The function `names()` is used to list the names in a data frame and to set them.
+```{r data frame subsetting by variable}
+names(df)
+df$date[1:3]
+df2 <- df
+names(df2) <- c("DATE", "VALUE")
+names(df2)
+names(df2)[1] <- "Date"
+names(df2)
+```
+
+
+The CSHShydRology package has some built in data that we can use when
+we load the package
+```{r}
+library(CSHShydRology)
+data()
+```
+
+**R** uses 'lazy-loading' so the data isn't loaded until you ask for it.
+You can see that the data frame has 2 columns, the date and the flowrate.
+```{r}
+CAN01AD002 <- CAN01AD002
+summary(CAN01AD002)
+```
+
+Because data frames hold more than one column of data, you can select values from
+one column based on another.
+
+For example, this would calculate the mean flows between 2 dates. The
+data frame is subset by selecting rows where the `date` variable lies between
+the start and end dates. The mean flow can then be calculated using the 
+`mean` function on the specified column.
+
+```{r}
+start_date <- as.Date("2014-01-01", format = "%Y-%m-%d")
+end_date <- as.Date("2014-12-31", format = "%Y-%m-%d")
+selected <- CAN01AD002[CAN01AD002$date >= start_date & CAN01AD002$date <= end_date,]
+summary(selected)
+mean_flows <- mean(selected$flow)
+mean_flows
+```
+
+What if you wanted the maximum or minimum yearly values?
+One way would be to add a column for the year of each date. You can
+do this using the `format()` function. Because `format()` returns a character
+string, it's often more useful to convert it to a number, using the function
+`as.numeric()`.
+
+```{r}
+CAN01AD002$year <- as.numeric(format(CAN01AD002$date, format = "%Y"))
+summary(CAN01AD002)
+```
+
+Having added the years, you can get the summary statistic for each year using the
+function `aggregate()`. The tilde (~) is used in **R** when you want
+to express a relationship between two variables. In this case we are saying
+that we want to aggregate the flows with respect to the years.
+
+```{r}
+yearly_max <- aggregate(flow~year, data = CAN01AD002, FUN = "max")
+yearly_max
+```
+
+
+### Lists
+
+Lists are one of the most powerful ways of storing data in **R** because they
+can contain _any_type of data - including other lists!
+
+A list is created with the command `list()`. You can specify the names of
+the list elements when it is created. In this example, the list contains
+characters, a numeric value and a data frame.
+```{r}
+gauge_info <- list(number = "01AD002", name = "SAINT JOHN RIVER AT FORT KENT", prov = "NB",
+                   drainage_area = 14700, annual_max_daily_Q = yearly_max)
+names(gauge_info)
+```
+
+To add or extract values from a list, you can select the variable by its name (if it has one),
+or by its number in the list, using `[[]]` (double square brackets).
+
+```{r}
+gauge_info[[1]]
+gauge_info[[3]]
+gauge_info$name
+```
+
+
+### Matrices and arrays
+
+Because data frames are so useful and powerful, **R** uses arrays and matrices
+less frequently. However, they can still be useful and some functions
+will require or return arrays/matrices, so you need to know about them.
+
+Things you need to know:
+1. arrays and matrices can only contain 1 type of data  
+2. an array can have any number of dimensions, a matrix is only two-dimensional  
+3. some functions like `t()` only work on matrices  
+4. you can convert 2d arrays and matrices to data frames and data frames with a single type
+to arrays and matrices. 
+
+The `matrix()` function creates a matrix. You can give all the matrix elements
+an initial value. Note that the matrix is filled by columns.
+
+```{r}
+# d <- matrix(base value for matrix, number of rows = 3, number of columns = 4)
+a <- seq(1, 12)
+d <- matrix(a, nrow = 3, ncol = 4)
+d
+typeof(d)
+dim(d)
+```
+
+**R** has all of the usual matrix manipulation and math functions. One of the most
+useful is `t()` which transposes the rows and columns.
+
+```{r}
+t(d)
+```
+
+
+## Flow control
+
+It's often useful for **R** to control the order and number of statements which
+are executed. You do this with the `if` statement and loops. These statements
+can help you when you want to process a lot of data.
+
+### if statements
+
+```{r if statement}
+a <- 5
+if (a < 2) {
+  print("a is less than 2!")
+} else {
+  print("a is not less than 2!")
+}
+```
+
+Here the printed statement indicates that "a is not less than 2", since we defined 'a' with a value of 5. This same code would print the other statement if we instead gave 'a' a value less than 2.
+
+Similarly, this `if` statement will check whether the number 4 is in our vector 'b', and print a statement (or not) accordingly.
+```{r}
+b <- c(1,2,4,8)
+if (4 %in% b) {
+  print(sprintf("4 is contained in %s, which is c(%s)","b",paste(b,collapse = ", ")))
+} else {
+    print(sprintf("4 is not contained in %s, which is c(%s)","b",paste(b,collapse = ", ")))
+}
+b <- seq(1,9,2)
+if (4 %in% b) {
+  print(sprintf("4 is contained in %s, which is c(%s)","b",paste(b,collapse = ", ")))
+} else {
+    print(sprintf("4 is not contained in %s, which is c(%s)","b",paste(b,collapse = ", ")))
+}
+```
+
+### Loops
+
+Loops of various forms are what give programming its power to take a task and repeat it loyally for everything we ask it to do. No more manual repetition! (or at least less of it).
+
+These three types of loops are all setup to print the numbers 1 to 3 into the console, but with different syntax and different stopping conditions. 
+
+* the **for** loop will repeat a task *for* the items it is given, then stop on its own
+* the **while** loop will repeat a task *while* a given condition is true, and will break once that condition is no longer true
+* the **repeat** loop will do just that until the loop is broken with a command such as **break**; note that the **break** command can be used to stop any of the loops above
+
+```{r loop types}
+# for loops
+for (i in 1:3) {
+  print(i)
+}
+
+# while loop
+i = 1
+while (i < 4) {
+  print(sprintf("%i is still less than 4",i))
+  i = i + 1
+}
+
+# repeat loop
+i = 1
+repeat {
+  print(i)
+  if (i >= 3) {
+	break
+  }
+  i = i + 1
+}
+```
+
+Loops in R are generally considered to be slow. However, recent tests
+have shown that they have improved, and that they are sometimes actually faster than using the `apply` functions, which are
+often used instead of loops: 
+https://lorentzen.ch/index.php/2022/02/19/avoid-loops-in-r-really/.
+That said, it's best to avoid loops if there is a built-in (vectorized) function which will
+do the same thing.
+
+This example shows which method is faster to get the square root of a mllion numbers
+by calculating the execution time for each.
+
+```{r loop speed check example, eval=FALSE, include=FALSE}
+d1 <- as.numeric(seq(1, 1e6)) # create a vector of 1 to 1 million
+d2 <- vector(length = 1e6)    # create empty vector
+
+# take the sqrt of each element in the vector
+Sys.sleep(1) # pause for 1 second to let CPU settle
+system.time(for (i in 1:length(dd)) {d2[i] <- d1[i]^0.5})
+
+Sys.sleep(1) # pause for 1 second to let CPU settle
+system.time(d3 <- sqrt(d1))
+```
+
+
+## Explore More Packages!
+
+R has **thousands** of packages to offer, which is one of the main advantages of getting to know R. This section will show you how to easily install and get to know new packages.
+
+### Installing and exploring a new package
+```{r installing packages, eval=FALSE}
+# install ggplot2 with dependencies from CRAN (internet connection required)
+install.packages("ggplot2")
+```
+
+```{r load ggplot2 and see functions}
+# load the library into your R session
+library(ggplot2)
+```
+
+### Some Data on Handling Data
+
+
+**R** has a large number of built in sample datasets, which can be viewed with the **data()** command. These are useful for testing functions and making reproducible examples for other users. Try taking a look at the `LakeHuron` and `co2` datasets.
+```{r sample datasets}
+data() # view the full set of sample data sets
+
+# examine and make a quick plot with the CO2 sample observation data set
+head(co2)
+
+```
+
+## Simple plotting
+
+What fun is data if you can't visualize it? Let's plot the `co2` dataset.
+```{r plot function, echo=TRUE, eval=TRUE}
+plot(yearly_max)
+```
+
+This plot is ok, but we can do better. 
+We can add lines connecting the points and set its colour and width.
+```{r update colours in CO2 plot, echo=TRUE, eval=TRUE}
+plot(yearly_max)
+lines(yearly_max, col = 'red', lwd = 2)
+```
+
+What about the axis labels? We can override the defaults and add more descriptive labels. Perhaps a title and legend as well.
+```{r add legend to CO2 plot, echo=TRUE, eval=TRUE}
+
+plot(yearly_max, xlab = 'Year',ylab = 'Discharge (m³/s)',
+     main = 'WSC Gauge 01AD002 annual max. daily discharge')
+lines(yearly_max, col = 'red', lwd = 2)
+
+```
+
+Want to output your plot to a file? Try this out.
+```{r save a plot, eval=FALSE}
+# start a png file of the given name, all subsequent plotting is directed to the file
+png("01AD002_annual_max_daily.png") 
+
+plot(yearly_max, xlab='Year',ylab='Discharge (m³/s)',
+     main='WSC Gauge 01AD002 annual max. daily discharge')
+lines(yearly_max, col='red', lwd=2)
+
+dev.off() # release focus from the png file, return to RStudio
+
+```
+
+You should see an image file (.png) in the active R folder (i.e. the one shown by the **getwd()** command).
+
+Note that if you ever need to change the active directory you are in, you can use the **setwd** function. This may be needed if you want to work in a specific directory to conveniently load data during your session. 
+
+\newpage
+# More Advanced Applications in R {#advancedR}
+
+Let's take a look at some of the more useful packages and functions in R, as it relates to common tasks and usages of data.
+
+## S3 and S4 objects
+
+**R** was derived from a closed-source program called "S-Plus". One of the features that
+**R** inherited is that functions can create their own types of objects, which have
+their own ways of being formatted for printing and plotting. Creating these objects (of types S3 and S4)
+is a _very_ advanced topic - you just need to know that they exist.
+
+When you do a linear regression of one variable against another (using the `lm` function), the result is an S3 object.
+So when you `print` and `plot` the regression, you get customized outputs. Note that
+because the `plot` function returns 4 different plots, you will be prompted to
+hit [Return] to see each one.
+
+```{r lm_example, echo=TRUE, fig.width=4, fig.height = 3}
+set.seed(100)       # set random seed so will always get same result (useful for teaching)
+a <- c(1, 2, 3, 4, 5)
+b <- a + runif(5)   # adds randomness
+plot(a, b)
+fit <- lm(b~a)
+print(fit)
+summary(fit)        # shows more information including R²
+plot(fit)
+
+# extract slope and intercept
+intercept <- coefficients(fit)[1]
+slope <- coefficients(fit)[2]
+
+# print values
+cat("intercept = ", intercept, "slope = ", slope)
+```
+
+## tidyverse
+
+The **tidyverse** is a collection of **R** packages developed by Hadley Wickam, among
+others. They have changed the way **R** is used. Although they take some time to learn,
+the packages make **R** much more powerful.
+
+
+### ggplot2
+
+`ggplot2`, which is part of the `tidyverse`,
+gets its name because it incorporates a "Grammar of Graphing". It generates plots in a fundamentally different way than the base plot. With base plots, the plot is a static image that needs to be redrawn if changes are required. In contrast, the `ggplot` function returns an object, which contains all of the data and plot formatting used to generate the plot. The `ggplot` object can then be stored, recalled and plotted, or further modified. Although `ggplot2` works
+very differently from the base plot, and takes a while to learn, it is much more powerful, and
+allows you to create more attractive plots very easily.
+
+Fortunately, there is a lot of help available to learn `ggplot2`, including a dedicated
+web site (https://ggplot2.tidyverse.org/reference/) and even a free book: https://ggplot2-book.org/.
+
+The basic components of a `ggplot2` plot are:
+
+* the `ggplot` call;
+* supplying data, usually as a data frame or similar format;
+* an aesthetic, i.e. mapping of x, y, and any groupings to the plot;  and
+* the format of the plot, i.e. points, lines, etc.
+
+
+```{r ggplot2 example 1}
+library(ggplot2)
+p1 <- ggplot(CAN01AD002, aes(date, flow)) +
+    geom_line()
+p1
+
+# change axis labels and sizes and colour scheme
+p2 <- p1 + theme_classic(14)+
+     xlab("Date")+
+     ylab("Daily discharge (m³/s)")
+
+p2
+```
+
+Examples of more complex plots that can be made using `ggplot2` can be found on the [r-statistics.co website](http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html).
+
+You can automatically add regression lines to plots. Saving your graph is a _lot_
+easier with `ggplot2` as it has a function `ggsave()` which does all the work. The
+`width` and `height` are in inches by default, but you can use other units as well.
+
+```{r}
+p3 <- ggplot(yearly_max, aes(year, flow)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  xlab("") +
+  ylab("Maximum daily discharge (m³/s)")
+  
+p3
+graph_file <- "01AD002_annual_max_Q.png"
+ggsave(graph_file, width = 8, height = 5)
+```
+
+## dplyr
+We showed a way of getting the annual max daily values, but
+the `dplyr` package is much more powerful in selecting, and managing your data.
+
+The `tidyverse` packages all use the pipe operator `%>%` to 
+
+\newpage
+# Challenge exercises {#challenges}

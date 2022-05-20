@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "gs_weirs",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::32611" } },
+"features": [
+{ "type": "Feature", "properties": { "wsc_names": "240" }, "geometry": { "type": "Point", "coordinates": [ 326764.55565397569444, 5502572.095958115532994 ] } },
+{ "type": "Feature", "properties": { "wsc_names": "241" }, "geometry": { "type": "Point", "coordinates": [ 327187.906769903609529, 5502480.697246765717864 ] } },
+{ "type": "Feature", "properties": { "wsc_names": "242" }, "geometry": { "type": "Point", "coordinates": [ 328041.840364173462149, 5499560.436636293306947 ] } }
+]
+}
