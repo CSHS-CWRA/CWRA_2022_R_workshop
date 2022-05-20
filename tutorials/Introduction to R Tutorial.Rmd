@@ -130,20 +130,21 @@ class(b)
 
 # what 'typeof' value is b?
 typeof(b) # 'double' is a type of number (numeric value)
+```
 
+```{r}
 b <- "hello, world" # change the value assigned to b to a character value
 b
 
 typeof(b) # this has now changed from numeric/double
+```
 
-# convert between data types
+Convert between data types
+```{r}
 as.numeric("501") + 1  # convert quoted string to numeric and add 1
-round(5.6) # round to integer
-floor(5.6) # round down to integer
-# as.numeric(b) # will produce an error
-# as.character(a) + "_" # will produce an error
-# as.character(a) && "_" # will produce an error
-paste0(as.character(a),"_","hello") # one way to combine strings
+round(5.6)             # round to integer
+floor(5.6)             # round down to integer
+as.character(502)      # convert numeric to character
 ```
 
 Now that we've started re-assigning values to variables, it's useful to recall their new values. On the upper-right portion of your screen in RStudio, the **Environment** tab shows the values of all user-defined variables, and it even reminds us of our user-defined function.
@@ -175,7 +176,6 @@ day2 <- as.Date("01/06/2022", format = "%d/%m/%Y")
 interval <- day2 - day1
 interval
 ```
-### Categorical data
 
 
 
@@ -217,6 +217,8 @@ summary(df)
 
 If you click on `df` in the **Environment** tab, you can see the values.
 This is _really_ useful.
+
+
 
 
 ### Subsetting Vectors
@@ -370,6 +372,58 @@ yearly_max <- aggregate(flow~year, data = CAN01AD002, FUN = "max")
 yearly_max
 ```
 
+### Sorting
+The best way to sort data in **R** is using the `order` function. It sorts value,
+but returns their order, not the sorted values. It may seem strange, but is actually
+very powerful.
+
+In this example, we will sort the annual flows from largest to smallest. What you are seeing
+is the _location_ (i.e. its row) of each value in its column, in order from largest to
+smallest.
+
+```{r}
+order(yearly_max$flow, decreasing = TRUE)  # increasing order is the default
+```
+
+If you want to see the actual values, the command would be
+```{r}
+yearly_max$flow[order(yearly_max$flow, decreasing = TRUE)]
+```
+If you want to see the years arranged by largest to smallest max flows, the command is
+```{r}
+yearly_max$year[order(yearly_max$flow, decreasing = TRUE)]
+```
+### Factors
+**R** has an unusual data type, **factor*, which is useful for dealing with
+categorical data. Factors are only found is vectors, or data frame columns.
+Although factors look like characters, they are actually
+integers. Factors are useful for grouping other data values. In this
+example, we have 4 hydrometric stations whose status us either "A" (active) or
+"D" (discontinued). We use the `factor` function to assign factor levels
+to each status. The `summary` command shows the number of values for each
+level.
+
+```{r}
+station <- c("05HF021", "05HG001", "05HG002", "05HG003")
+status <- c("D", "A", "A", "D" )
+status <- factor(status, levels = c("D", "A"))
+station_df <- data.frame(station, status)
+summary(station_df)
+```
+You can select the values by treating them as characters
+```{r}
+station_df[station_df$status == "D",]
+```
+
+You can also sort them using the `order` function.  Because we defined the levels
+of the factors to be "D" before "A", we can sort the values in this order. This is
+very useful when you want to override the default alphabetical sorting order on
+graphs.
+
+```{r}
+station_df[order(station_df$status),]
+```
+
 
 ### Lists
 
@@ -394,7 +448,6 @@ gauge_info[[3]]
 gauge_info$name
 ```
 
-
 ### Matrices and arrays
 
 Because data frames are so useful and powerful, **R** uses arrays and matrices
@@ -404,7 +457,7 @@ will require or return arrays/matrices, so you need to know about them.
 Things you need to know:
 1. arrays and matrices can only contain 1 type of data  
 2. an array can have any number of dimensions, a matrix is only two-dimensional  
-3. some functions like `t()` only work on matrices  
+3. some functions like `t()` only work on matrices, not arrays
 4. you can convert 2d arrays and matrices to data frames and data frames with a single type
 to arrays and matrices. 
 
@@ -471,17 +524,6 @@ decile
 CAN01AD002$comment <- ifelse(CAN01AD002$flow < decile, "low flow", "")
 head(CAN01AD002[which(CAN01AD002$comment == "low flow"),])
 ```
-You could also use the 
-
-
-
-
-
-
-
-
-
-
 ### Loops
 
 Loops of various forms are what give programming its power to take a task and repeat it loyally for everything we ask it to do. No more manual repetition! (or at least less of it).
@@ -539,23 +581,8 @@ system.time(d3 <- sqrt(d1))
 ```
 
 
-## Explore More Packages!
-
-R has **thousands** of packages to offer, which is one of the main advantages of getting to know R. This section will show you how to easily install and get to know new packages.
-
-### Installing and exploring a new package
-```{r installing packages, eval=FALSE}
-# install ggplot2 with dependencies from CRAN (internet connection required)
-install.packages("ggplot2")
-```
-
-```{r load ggplot2 and see functions}
-# load the library into your R session
-library(ggplot2)
-```
 
 ### Some Data on Handling Data
-
 
 **R** has a large number of built in sample datasets, which can be viewed with the **data()** command. These are useful for testing functions and making reproducible examples for other users. Try taking a look at the `LakeHuron` and `co2` datasets.
 ```{r sample datasets}
@@ -698,6 +725,29 @@ graph_file <- "01AD002_annual_max_Q.png"
 ggsave(graph_file, width = 8, height = 5)
 ```
 
+## Functions
+If you are doing something repeatedly (like more than 3 times) it's
+a good idea to create a function to do it. You can create a function
+within your notebook, or you can store it in its own .R file.
+
+To create a function, you use the `function` command. You need to specify the
+function parameters (which can have default values). Use 
+`return` to specify the value that the function will return.
+
+Here's a function that converts from Fahrenheit to Celsius.
+
+```{r}
+f2c <- function(temp_f) {
+  temp_c <- (temp_f - 32) / 1.8
+  return(temp_c)
+}
+```
+
+To use your function, just call it like any other.
+```{r}
+temps_f <- seq(-40, 100, by = 20)
+f2c(temps_f)
+```
 
 
 \newpage
@@ -707,7 +757,16 @@ ggsave(graph_file, width = 8, height = 5)
 
 Using the `ifelse` function, create a new column "hydroyear"
 in the CAN01AD002 data frame. If the month is 10 or greater,
-the hydroyear is one greater than the year. Otherwise, it is the
-current year.
+the hydro year is one greater than the year. Otherwise, it is the
+current year. Hint: you can use the `format` command to get the month
+from the date.
 
-## Ca
+## Challenge 2
+
+Get the mean daily discharge for each hydro year. Plot the values.
+
+## Challenge 3
+
+Classify the flows by season: winter = NDJF, spring = MAM,
+summer = JJA, fall = SO
+
