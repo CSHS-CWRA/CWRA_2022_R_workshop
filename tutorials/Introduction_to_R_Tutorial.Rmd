@@ -12,14 +12,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction to R Tutorial
 
-This beginner R tutorial is intended to provide some background training on using **R** for new users 
-* Navigating RStudio
-* Basic R Syntax
-* Data types in R
-* Getting help in R
-* Installing and Exploring Packages
-* Data checking and sample data sets
-* Creating plots (base and ggplot)
+This beginner R tutorial is intended to provide some background training on using **R** for new users  
+
+- Getting help in R   
+- Basic R Syntax  
+- Data types
+- Flow control  
+- Creating plots (base R)  
 
 
 
@@ -29,7 +28,7 @@ This document was generated using **[R Markdown](https://rmarkdown.rstudio.com/a
 
 This document will have a number of headings, text blocks (like this one), and code blocks that are run as the document is compiled. This allows you to see the script and output in one document (plus the code gets run and checked for errors as the document is made, which helps to reduce typos in the document code sections).
 
-If youn just one to run one line in the chunk you can place your cursor in one line and press CTRL+ENTER to run that one line (CMD+ENTER for Mac). Here's an example with just one line
+If you want to run one line in the chunk you can place your cursor in one line and press CTRL+ENTER to run that line (CMD+ENTER for Mac). Here's an example with just one line
 
 ```{r comment example}
 # this is a comment in R. It is preceded by an octothorpe (or pound symbol, 
@@ -68,7 +67,10 @@ Finally, if you place your cursor within the function name in your chunk and pre
 If you are using the RStudio interface, the help for functions should appear on the right side of your screen in the Help menu. If you don't see the Files/Plots/Help menu, then at the top menu, click on *View --> Panes --> Show All Panes*, and your layout should be restored.
 
 
-For more resources, check out the CRAN website (<https://cran.r-project.org/>) for information, documentation, etc. StackOverflow and similar forums are also extremely helpful for R!
+For more resources, check out the CRAN website (<https://cran.r-project.org/>) for information, documentation, etc. 
+
+It's hard to Google "R". To search for help on **R** topics use <https://rseek.org/>.
+
 
 
 \newpage
@@ -119,7 +121,7 @@ work even more reproducible. The functions can
 be stored in an **R** package
 
 
-### Data Exploration and Data Types
+### Checking data types
 
 Here are some commands to check what type of data you are dealing with, and help you convert between different types.
 
@@ -129,7 +131,7 @@ b <- 6
 class(b)
 
 # what 'typeof' value is b?
-typeof(b) # 'double' is a type of number (numeric value)
+typeof(b) # 'double' is the type of number (double precision) 
 ```
 
 ```{r}
@@ -185,9 +187,12 @@ A single valued variable, such as the ones above (also known as a scalar), is ca
 
 `c()` is the concatenate function, taking multiple atoms separated by commas and creating a new vector. 
 We saw above how we can use addition or multiplication on an atom. We can also perform a single operation on all values in a vector. Let's perform apply arithmetic on the new vector **a**.
-```{r vector operations}
+```{r vector operations1}
 a <- c(1,2,3,4,5)
 a
+```
+
+```{r vector operations2}
 b <- a / 2
 b
 b <- sqrt(a)       # uses built-in square root function on all values of a
@@ -204,21 +209,18 @@ number of values. The function `length()` is useful to get the number of values
 in a vector.
 
 In this example we create 2 vectors, one containing dates and the other containing
-numeric values, and put them in the same data frame
+numeric values, and put them in the same data frame. 
 
-```{r create vectors and datrames}
+```{r create vectors and datrame}
+date <- seq(day1, day2, by = 1)    # a sequence between the 2 dates defined earlier 
+value <- runif(length(date))       # random numbers of the same length as 'date'
 
-date <- seq(day1, day2, by = 1)
-value <- runif(length(date))
-
-df <- data.frame(date, value)
-summary(df)
+df <- data.frame(date, value)      # assemble the data frame
+summary(df)                        # summarize the values in the data frame
 ```
 
 If you click on `df` in the **Environment** tab, you can see the values.
 This is _really_ useful.
-
-
 
 
 ### Subsetting Vectors
@@ -226,12 +228,15 @@ This is _really_ useful.
 It's important to be able to subset vectors, to extract specific values. To do this, we use the square brackets "[ ]". They are not to be confused with () or {}, which each have their own special uses, as discussed above. The **length()** function returns the length of a vector.
 
 
-```{r subsetting vectors}
+```{r subsetting vectors 1}
+# set up a vector
 # sequence from 1 to 30, jumping by a value of 2 (instead of the default 1)
 a <- seq(1, 30, by = 2)
 a
 length(a) # get the length of vector a (number of values)
+```
 
+```{r subsetting vectors 2}
 # subset by location
 a[1] # first value in the vector
 a[c(1,2)] # first and second value in the vector
@@ -262,12 +267,16 @@ c > 5
 ```
 
 You can use Booleans to perform subsetting operations (i.e. extract values by conditions).
-```{r boolean subsetting}
+```{r boolean subsetting1}
+# set up vectors
 a <- seq(1,10,2)
 b <- seq(2,10,2)
 a
 b
+```
 
+```{r boolean subsetting2}
+# subset vectors
 a > 5 # which values are greater than 5?
 a[ a > 5] # same as above, but returns the values of a that meet the criteria
 a[(a >= 3) & (a < 8)] # multiple conditions for subsetting, take values >=3 and <8 only
@@ -285,6 +294,7 @@ The same principles that work on selecting and subsetting vectors also work
 with data frames (and arrays and matrices).
 Note that the `length()` function is not useful as it just returns the number of
 variables(columns) in a data frame.
+
 ```{r data frame and matrix}
 length(df)
 dim(df)    # returns [number of rows, number of columns]
@@ -348,7 +358,7 @@ end_date <- as.Date("2014-12-31", format = "%Y-%m-%d")
 selected <- CAN01AD002[CAN01AD002$date >= start_date & CAN01AD002$date <= end_date,]
 summary(selected)
 mean_flows <- mean(selected$flow)
-mean_flows
+cat("mean daily flow:", mean_flows, "m3/s")
 ```
 
 What if you wanted the maximum or minimum yearly values?
@@ -373,8 +383,8 @@ yearly_max
 ```
 
 ### Sorting
-The best way to sort data in **R** is using the `order` function. It sorts value,
-but returns their order, not the sorted values. It may seem strange, but is actually
+The best way to sort data in **R** is using the `order` function. It sorts values,
+but returns their _order_, not the sorted values. It may seem strange, but is actually
 very powerful.
 
 In this example, we will sort the annual flows from largest to smallest. What you are seeing
@@ -385,16 +395,18 @@ smallest.
 order(yearly_max$flow, decreasing = TRUE)  # increasing order is the default
 ```
 
-If you want to see the actual values, the command would be
+If you want to see the values arranged by largest to smallest, the command would be
 ```{r}
 yearly_max$flow[order(yearly_max$flow, decreasing = TRUE)]
 ```
+
 If you want to see the years arranged by largest to smallest max flows, the command is
 ```{r}
 yearly_max$year[order(yearly_max$flow, decreasing = TRUE)]
 ```
+
 ### Factors
-**R** has an unusual data type, **factor*, which is useful for dealing with
+**R** has an unusual data type, **factor**, which is useful for dealing with
 categorical data. Factors are only found is vectors, or data frame columns.
 Although factors look like characters, they are actually
 integers. Factors are useful for grouping other data values. In this
@@ -410,6 +422,7 @@ status <- factor(status, levels = c("D", "A"))
 station_df <- data.frame(station, status)
 summary(station_df)
 ```
+
 You can select the values by treating them as characters
 ```{r}
 station_df[station_df$status == "D",]
@@ -428,7 +441,7 @@ station_df[order(station_df$status),]
 ### Lists
 
 Lists are one of the most powerful ways of storing data in **R** because they
-can contain _any_type of data - including other lists!
+can contain _any_ type of data - including other lists!
 
 A list is created with the command `list()`. You can specify the names of
 the list elements when it is created. In this example, the list contains
@@ -454,7 +467,8 @@ Because data frames are so useful and powerful, **R** uses arrays and matrices
 less frequently. However, they can still be useful and some functions
 will require or return arrays/matrices, so you need to know about them.
 
-Things you need to know:
+Things you need to know:  
+
 1. arrays and matrices can only contain 1 type of data  
 2. an array can have any number of dimensions, a matrix is only two-dimensional  
 3. some functions like `t()` only work on matrices, not arrays
@@ -462,7 +476,7 @@ Things you need to know:
 to arrays and matrices. 
 
 The `matrix()` function creates a matrix. You can give all the matrix elements
-an initial value. Note that the matrix is filled by columns.
+an initial value. Note that the values are assigned one column at a time.
 
 ```{r}
 # d <- matrix(base value for matrix, number of rows = 3, number of columns = 4)
@@ -487,7 +501,7 @@ It's often useful for **R** to control the order and number of statements which
 are executed. You do this with the `if` statement and loops. These statements
 can help you when you want to process a lot of data.
 
-### if statements
+### Branches (if statements)
 The `if` statement consists of a test statement, which returns
 a Boolean value (`TRUE` or `FALSE`). If the result is `TRUE` then the
 following statment is executed. If it is `FALSE` then nothing is done, unless
@@ -524,11 +538,12 @@ decile
 CAN01AD002$comment <- ifelse(CAN01AD002$flow < decile, "low flow", "")
 head(CAN01AD002[which(CAN01AD002$comment == "low flow"),])
 ```
+
 ### Loops
 
-Loops of various forms are what give programming its power to take a task and repeat it loyally for everything we ask it to do. No more manual repetition! (or at least less of it).
+Loops give programming its power by repeating a task. No more manual repetition! (or at least less of it).
 
-These three types of loops are all setup to print the numbers 1 to 3 into the console, but with different syntax and different stopping conditions. 
+There are 3 types of loops in **R**. 
 
 * the **for** loop will repeat a task *for* the items it is given, then stop on its own
 * the **while** loop will repeat a task *while* a given condition is true, and will break once that condition is no longer true
@@ -565,50 +580,41 @@ https://lorentzen.ch/index.php/2022/02/19/avoid-loops-in-r-really/.
 That said, it's best to avoid loops if there is a built-in (vectorized) function which will
 do the same thing.
 
-This example shows which method is faster to get the square root of a mllion numbers
+This example shows which method is faster to get the square root of a million numbers
 by calculating the execution time for each.
 
 ```{r loop speed check example, eval=FALSE, include=FALSE}
 d1 <- as.numeric(seq(1, 1e6)) # create a vector of 1 to 1 million
-d2 <- vector(length = 1e6)    # create empty vector
+d2 <- vector(length = 1e6)    # create empty vector to hold results in loop
 
 # take the sqrt of each element in the vector
 Sys.sleep(1) # pause for 1 second to let CPU settle
-system.time(for (i in 1:length(dd)) {d2[i] <- d1[i]^0.5})
+system.time(for (i in 1:length(d1)) {d2[i] <- d1[i]^0.5})
 
 Sys.sleep(1) # pause for 1 second to let CPU settle
 system.time(d3 <- sqrt(d1))
 ```
 
 
-
-### Some Data on Handling Data
-
-**R** has a large number of built in sample datasets, which can be viewed with the **data()** command. These are useful for testing functions and making reproducible examples for other users. Try taking a look at the `LakeHuron` and `co2` datasets.
-```{r sample datasets}
-data() # view the full set of sample data sets
-
-# examine and make a quick plot with the CO2 sample observation data set
-head(co2)
-
-```
-
 ## Simple plotting
 
-What fun is data if you can't visualize it? Let's plot the `co2` dataset.
+What fun is data if you can't visualize it? Let's plot the `yearly_max` data frame
+that we created above. Because we are going to use the first column as the x values
+and the seconc column as the y values, we can use the `plot` function defaults.
+
 ```{r plot function, echo=TRUE, eval=TRUE}
 plot(yearly_max)
 ```
 
 This plot is ok, but we can do better. 
 We can add lines connecting the points and set its colour and width.
-```{r update colours in CO2 plot, echo=TRUE, eval=TRUE}
+```{r update colours in plot, echo=TRUE, eval=TRUE}
 plot(yearly_max)
 lines(yearly_max, col = 'red', lwd = 2)
 ```
 
-What about the axis labels? We can override the defaults and add more descriptive labels. Perhaps a title and legend as well.
-```{r add legend to CO2 plot, echo=TRUE, eval=TRUE}
+What about the axis labels? We can override the defaults and add more descriptive label and a title.
+```{r add legend to plot, echo=TRUE, eval=TRUE}
 
 plot(yearly_max, xlab = 'Year',ylab = 'Discharge (m³/s)',
      main = 'WSC Gauge 01AD002 annual max. daily discharge')
@@ -629,7 +635,7 @@ dev.off() # release focus from the png file, return to RStudio
 
 ```
 
-You should see an image file (.png) in the active R folder (i.e. the one shown by the **getwd()** command).
+You should see an image file (.png) in the current folder (i.e. the one shown by the **getwd()** command).
 
 Note that if you ever need to change the active directory you are in, you can use the **setwd** function. This may be needed if you want to work in a specific directory to conveniently load data during your session. 
 
@@ -643,14 +649,15 @@ Let's take a look at some of the more useful packages and functions in R, as it 
 **R** was derived from a closed-source program called "S-Plus". One of the features that
 **R** inherited is that functions can create their own types of objects, which have
 their own ways of being formatted for printing and plotting. Creating these objects (of types S3 and S4)
-is a _very_ advanced topic - you just need to know that they exist.
+is a _very_ advanced topic. For now, you just need to know that they exist!
 
 When you do a linear regression of one variable against another (using the `lm` function), the result is an S3 object.
 So when you `print` and `plot` the regression, you get customized outputs. Note that
 because the `plot` function returns 4 different plots, you will be prompted to
-hit [Return] to see each one.
+hit [Return] to see each one (if you type the command at the console) or
+to click on the figures (if you run the chunk).
 
-```{r lm_example, echo=TRUE, fig.width=4, fig.height = 3}
+```{r lm_example1, echo=TRUE, fig.width=4, fig.height = 3}
 set.seed(100)       # set random seed so will always get same result (useful for teaching)
 a <- c(1, 2, 3, 4, 5)
 b <- a + runif(5)   # adds randomness
@@ -659,13 +666,19 @@ fit <- lm(b~a)
 print(fit)
 summary(fit)        # shows more information including R²
 plot(fit)
+```
 
+To extract the slope and intercept of the fitted linear model,
+you need the `coefficients` function. If you want R², you need
+to use the `summary` function as shown above.
+
+```{r lm_example2, echo=TRUE}
 # extract slope and intercept
 intercept <- coefficients(fit)[1]
 slope <- coefficients(fit)[2]
-
+r2 <- summary(fit)$r.squared
 # print values
-cat("intercept = ", intercept, "slope = ", slope)
+cat("intercept = ", intercept, "slope = ", slope, "R² =", r2)
 ```
 
 ## tidyverse
@@ -677,15 +690,15 @@ the packages make **R** much more powerful.
 
 ### ggplot2
 
-`ggplot2`, which is part of the `tidyverse`,
-gets its name because it incorporates a "Grammar of Graphing". It generates plots in a fundamentally different way than the base plot. With base plots, the plot is a static image that needs to be redrawn if changes are required. In contrast, the `ggplot` function returns an object, which contains all of the data and plot formatting used to generate the plot. The `ggplot` object can then be stored, recalled and plotted, or further modified. Although `ggplot2` works
+**ggplot2**, which is part of the **tidyverse**,
+gets its name because it incorporates a "Grammar of Graphing". It generates plots in a fundamentally different way than the base plot. With base plots, the plot is a static image that needs to be redrawn if changes are required. In contrast, the `ggplot` function returns an object, which contains all of the data and plot formatting used to generate the plot. The `ggplot` object can then be stored, recalled and plotted, or further modified. Although **ggplot2** works
 very differently from the base plot, and takes a while to learn, it is much more powerful, and
 allows you to create more attractive plots very easily.
 
-Fortunately, there is a lot of help available to learn `ggplot2`, including a dedicated
+Fortunately, there is a lot of help available to learn **ggplot2**, including a dedicated
 web site (https://ggplot2.tidyverse.org/reference/) and even a free book: https://ggplot2-book.org/.
 
-The basic components of a `ggplot2` plot are:
+The basic components of a **ggplot2** plot are:
 
 * the `ggplot` call;
 * supplying data, usually as a data frame or similar format;
@@ -698,10 +711,12 @@ library(ggplot2)
 p1 <- ggplot(CAN01AD002, aes(date, flow)) +
     geom_line()
 p1
+```
 
-# change axis labels and sizes and colour scheme
+change axis labels and sizes and colour scheme
+```{r ggplot2 example 2}
 p2 <- p1 + theme_classic(14)+
-     xlab("Date")+
+     xlab("")+
      ylab("Daily discharge (m³/s)")
 
 p2
@@ -710,7 +725,7 @@ p2
 Examples of more complex plots that can be made using `ggplot2` can be found on the [r-statistics.co website](http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html).
 
 You can automatically add regression lines to plots. Saving your graph is a _lot_
-easier with `ggplot2` as it has a function `ggsave()` which does all the work. The
+easier with **ggplot2** as it has a function `ggsave` which does all the work. The
 `width` and `height` are in inches by default, but you can use other units as well.
 
 ```{r}
@@ -737,7 +752,7 @@ function parameters (which can have default values). Use
 Here's a function that converts from Fahrenheit to Celsius.
 
 ```{r}
-f2c <- function(temp_f) {
+f2c <- function(temp_f){
   temp_c <- (temp_f - 32) / 1.8
   return(temp_c)
 }
@@ -748,6 +763,24 @@ To use your function, just call it like any other.
 temps_f <- seq(-40, 100, by = 20)
 f2c(temps_f)
 ```
+
+
+You can create a file to hold this function by clicking on
+**File | New File | R Script**. It creates an empty file.
+
+Now copy the function definition statement above and paste it
+into the new R Script.
+
+Save the file clicking  **File | Save**. Give the file a
+name ending in ".R". In this case call it "f2c.R".
+
+To load in the function, you can use the command
+
+```{r}
+source("f2c.R")
+```
+
+You will now see the function `f2c` listed in the Environment tab.
 
 
 \newpage
@@ -767,6 +800,8 @@ Get the mean daily discharge for each hydro year. Plot the values.
 
 ## Challenge 3
 
-Classify the flows by season: winter = NDJF, spring = MAM,
-summer = JJA, fall = SO
+Classify the flows by quarter: q1 = Jan-Mar, q2 = April-June,
+q3 = July-September, q4 = October-December.
+Plot the flows facetted by each quarter using **ggplot2**
+with the function `facet_wrap`.
 

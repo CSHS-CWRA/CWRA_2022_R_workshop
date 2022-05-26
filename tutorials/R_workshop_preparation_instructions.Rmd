@@ -1,0 +1,86 @@
+---
+title: "R workshop preparation instructions"
+author: 
+- Kevin Shook
+- Paul Whitfield
+- Dan Moore
+date: "June 4, 2022"
+output: pdf_document
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Instructions
+
+As this is a workshop, you will need a laptop with **R** and **Rstudio** pre-installed.
+We won't have time to help you with the installation, so please make sure that
+your system is working ahead of time. This is especially important if you have a
+computer from work. _Please_ talk to your IT people ahead of time to make sure that
+everything is installed properly!
+
+## Installing **R**
+
+**R** needs to be installed first. You can get the program here:
+https://cran.r-project.org/index.html
+
+Next, you need to install **RStudio**. You can get it from here:
+https://www.rstudio.com/products/rstudio/
+
+
+Please run **RStudio** _before_ attending the workshop to be sure that everything
+is working properly.
+
+
+## Minimal installation
+
+The Workshop is based on the `CSHShydRology` package, so you will need to have it
+installed ahead of time. You can do this inside **RStudio** by selecting the
+**Packages** tab and clicking the "Install" button. 
+![](figures/install.png){width=20%}  
+Now type CSHShydrology into the dialog box. Make sure that the checkbox
+"Install dependencies" is selected and click the **Install** button.  
+
+![](figures/install_CSHShydRology.png){width=40%}
+
+`CSHShydRology` requires the use of the package `whitebox`. which also
+requires an executable program to be installed. You can do this inside 
+**RStudio** with the following commands:
+
+```{r, echo = TRUE, eval= FALSE}
+library(whitebox)
+install_whitebox()
+```
+
+## Other programs and packages
+
+## ggplot2
+
+The package **ggplot2** is used very widely for graphs. We have a few exercises which
+use it, so it would be a good idea to install it. It is installed in the
+same was as `CSHShydRology`.
+
+## Rmarkdown
+We will be using the package `rmarkdown` to create documents, so you should
+also install it. This allows you to create html documents. If you want to
+be able to export .pdf and .docx files, you will also need to install the program
+**Pandoc**   
+https://pandoc.org/installing.html  
+and **LaTeX**. Note that the **Pandoc** installation page also shows where you can obtain
+**LaTeX** for your system.
+
+## git
+
+**git** is a distributed version control program. We will be showing how to
+use **git** with **RStudio** to manage the versions of your files. You can
+install **git** from here:  
+https://git-scm.com/downloads  
+
+## Building packages
+
+We will be showing how you can build packages in **R**. This requires installing
+the package `devtools`. Make sure that all the dependencies (there are many!) 
+are installed.
+
