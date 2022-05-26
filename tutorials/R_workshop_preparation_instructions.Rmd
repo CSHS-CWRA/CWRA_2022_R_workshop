@@ -1,10 +1,11 @@
 ---
 title: "R workshop preparation instructions"
 author: 
+- Dan Moore
 - Kevin Shook
 - Paul Whitfield
-- Dan Moore
-date: "June 4, 2022"
+
+date: "June 5, 2022"
 output: pdf_document
 urlcolor: blue
 ---
@@ -13,12 +14,35 @@ urlcolor: blue
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Instructions
+# Welcome!
+
+Thank you for attending the **CSHS Workshop: R for hydrologists**.
+The workshop will be interactive and will consist of the following sessions:  
+
+**Morning**  
+Introduction to R - Kevin Shook  
+--------------------------  
+  Coffee break  
+--------------------------  
+Working with **CSHShydRology** - Paul Whitfield  
+==========================  
+  Lunch (not provided)  
+==========================  
+**Afternoon **  
+Catchment delineation - Dan Moore  
+--------------------------  
+  Coffee break  
+--------------------------  
+Functions, projects and packages - Kevin Shook  
+Creating documents in RMarkdown - Dan Moore  
+
+
+# Setup instructions
 
 As this is a workshop, you will need a laptop with **R** and **Rstudio** pre-installed.
 We won't have time to help you with the installation, so please make sure that
 your system is working ahead of time. This is especially important if you have a
-computer from work. _Please_ talk to your IT people ahead of time to make sure that
+computer from your employer. _Please_ talk to your IT people ahead of time to make sure that
 everything is installed properly!
 
 ## Installing **R**
@@ -34,7 +58,7 @@ Please run **RStudio** _before_ attending the workshop to be sure that everythin
 is working properly.
 
 
-## Minimal installation
+## Installing `CSHShydRology`
 
 The Workshop is based on the `CSHShydRology` package, so you will need to have it
 installed ahead of time. You can do this inside **RStudio** by selecting the
@@ -54,15 +78,15 @@ library(whitebox)
 install_whitebox()
 ```
 
-## Other programs and packages
+## Other packages and programs
 
-## ggplot2
+### ggplot2
 
 The package **ggplot2** is used very widely for graphs. We have a few exercises which
 use it, so it would be a good idea to install it. It is installed in the
 same was as `CSHShydRology`.
 
-## Rmarkdown
+### Rmarkdown
 We will be using the package `rmarkdown` to create documents, so you should
 also install it. This allows you to create html documents. If you want to
 be able to export .pdf and .docx files, you will also need to install the program
@@ -71,16 +95,32 @@ https://pandoc.org/installing.html
 and **LaTeX**. Note that the **Pandoc** installation page also shows where you can obtain
 **LaTeX** for your system.
 
-## git
+### git
 
 **git** is a distributed version control program. We will be showing how to
 use **git** with **RStudio** to manage the versions of your files. You can
 install **git** from here:  
 https://git-scm.com/downloads  
 
-## Building packages
 
-We will be showing how you can build packages in **R**. This requires installing
-the package `devtools`. Make sure that all the dependencies (there are many!) 
-are installed.
+# Setting up your workspace
+
+The data files needed for these exercises can all be downloaded from **GitHub**,
+at <https://github.com/CSHS-CWRA/CWRA_2022_R_workshop>. 
+Note that to get the files you _must_ have an account on **GitHub**, which is free.
+
+To get the data,   
+1.  Go to <https://github.com/CSHS-CWRA/CWRA_2022_R_workshop/releases/tag/v0.9>  
+2.  Under **Assets** click on **Source code (zip)**  
+![](figures/assets.png){width=30%}  
+3.  Download the .zip file to a folder on your hard drive.  
+4.  Extract the .zip file  
+
+This will create all of the folders that are required, with all of the data files
+that we will be using.
+
+`/tutorials`  - contains the tutorials that you will be working through  
+`/slides`  - contains all the slide presentations  
+`/data` - contains all the data sets required to complete the exercises  
+`/output` - where your code will write output  
 
