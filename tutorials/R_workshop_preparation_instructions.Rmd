@@ -4,7 +4,6 @@ author:
 - Dan Moore
 - Kevin Shook
 - Paul Whitfield
-
 date: "June 5, 2022"
 output: pdf_document
 urlcolor: blue
@@ -13,7 +12,6 @@ urlcolor: blue
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
 # Welcome!
 
 Thank you for attending the **CSHS Workshop: R for hydrologists**.
@@ -43,7 +41,6 @@ As this is a workshop, you will need a laptop with **R** and **Rstudio** pre-ins
 We won't have time to help you with the installation, so please make sure that
 your system is working ahead of time. This is especially important if you have a
 computer from your employer. _Please_ talk to your IT people ahead of time to make sure that
-everything is installed properly!
 
 ## Installing **R**
 
@@ -56,7 +53,6 @@ https://www.rstudio.com/products/rstudio/
 
 Please run **RStudio** _before_ attending the workshop to be sure that everything
 is working properly.
-
 
 ## Installing `CSHShydRology`
 
@@ -78,7 +74,7 @@ library(whitebox)
 install_whitebox()
 ```
 
-## Other packages and programs
+## Other programs and packages
 
 ### ggplot2
 
@@ -123,4 +119,11 @@ that we will be using.
 `/slides`  - contains all the slide presentations  
 `/data` - contains all the data sets required to complete the exercises  
 `/output` - where your code will write output  
+
+## Building packages
+
+We will be showing how you can build packages in **R**. This requires installing
+the package `devtools`. Make sure that all the dependencies (there are many!) 
+are installed.
+
 

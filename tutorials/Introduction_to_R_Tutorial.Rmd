@@ -22,7 +22,6 @@ This tutorial is intended to provide some background training on using **R**
 - Advanced topics
 - Challenge exercises
 
-
 ## How this document works
 
 This document was generated using **[R Markdown](https://rmarkdown.rstudio.com/articles_intro.html)**. This is a great tool for code transparency and data analysis, because the code blocks, code outputs, and your comments are "knit" into a single document! 
@@ -66,7 +65,6 @@ To search for all the help on calculating the variance, try this
 Finally, if you place your cursor within the function name in your chunk and press **F1** on your keyboard, the documentation will again come up. 
 
 If you are using **RStudio** , the help information should appear on the right side of your screen in the Help menu. If you don't see the Files/Plots/Help menu, then at the top menu, click on *View --> Panes --> Show All Panes*, and your layout should be restored.
-
 
 For more resources, check out the CRAN website (<https://cran.r-project.org/>) for information, documentation, etc. 
 
@@ -121,6 +119,7 @@ discusses some of the naming conventions that are in use:
 Functions are called using round brackets (parentheses). Inside the brackets you
 specify the values (often called arguments) used by the function.
 In this example, the `rnorm` function is called, followed by the `mean` and `sd` (standard deviation) functions.
+
 ```{r running commands}
 a <- rnorm(n = 20, mean = 0, sd = 2) # sample a normal distribution of 20 values with mean = 0, sd = 2
 mean(a)                              # calculates the mean of values in vector a
@@ -176,7 +175,7 @@ b
 ```
 You can't do arithmetic with character strings, but they are still very useful. Many types
 of data, from names of places to names of months are characters. **R** has many functions
-for working with character data. You can sort character strings, slicem them into pieces,
+for working with character data. You can sort character strings, slice them into pieces,
 or combine them together.
 
 You can combine strings together using the `paste` function, which concatenates them
@@ -202,9 +201,8 @@ command `? strptime`.
 ```{r}
 day1 <- as.Date("1900-01-01")
 day2 <- as.Date("05/06/2022", format = "%d/%m/%Y")
-interval <- day2 - day1
-interval
 ```
+
 
 
 ## Vectors, data frames, lists, arrays and matrices
@@ -240,6 +238,8 @@ a
 b <- sqrt(a)       # uses built-in square root function on all values of a
 b
 ```
+
+**R** has built-in functions that are also helpful in generating vectors, matrices, data frames, etc.
 
 ### Subsetting Vectors
 
@@ -305,7 +305,6 @@ which( a >= 3 & a < 8) # returns the index values *which* meet the criteria spec
 any(a %in% b)  # check if any values of a exist in b (FALSE, since we have evens and odds)
 ```
 
-
 ### Data frames
 
 Data frames are the most useful data structure in **R** and are created by assembling 
@@ -318,7 +317,7 @@ in a vector.
 In this example we create 2 vectors, one containing dates and the other containing
 numeric values, and put them in the same data frame. 
 
-```{r create vectors and datrame}
+```{r create vectors and dataframe}
 date <- seq(day1, day2, by = 1)    # a sequence between the 2 dates defined earlier 
 value <- runif(length(date))       # random numbers of the same length as 'date'
 
@@ -330,6 +329,7 @@ If you click on `df` in the **Environment** tab, you can see the values.
 This is _really_ useful.
 
 #### Subsetting data frames
+
 The same principles that work on selecting and subsetting vectors also work
 with data frames (and arrays and matrices).
 Note that the `length()` function is not useful as it just returns the number of
@@ -368,6 +368,7 @@ names(df2)
 names(df2)[1] <- "Date"
 names(df2)
 ```
+
 #### Examples of working with data frames
 
 The CSHShydRology package has some built in data that we can use when
@@ -423,6 +424,7 @@ yearly_max
 ```
 
 ### Sorting
+
 The best way to sort data (vectors and data frames) in **R** is using the `order` function. It sorts values, but returns their _order_, not the sorted values. It may seem strange, but is actually
 very powerful.
 
@@ -445,7 +447,6 @@ yearly_max$year[order(yearly_max$flow, decreasing = TRUE)]
 ```
 
 ### Factors
-
 **R** has an unusual data type, **factor**, which is useful for dealing with
 categorical data. Factors are only found is vectors, or data frame columns.
 Although factors look like characters, they are actually
@@ -514,6 +515,7 @@ Things you need to know:
 3. some functions like `t()` only work on matrices, not arrays  
 4. you can convert 2d arrays and matrices to data frames and data frames with a single type
 to arrays and matrices.  
+
 
 The `matrix()` function creates a matrix. You can give all the matrix elements
 an initial value. Note that the values are assigned one column at a time.
@@ -613,7 +615,7 @@ repeat {
 }
 ```
 
-Loops in R are generally considered to be slow. However, recent tests
+Loops in **R** are generally considered to be slow. However, recent tests
 have shown that they have improved, and that they are sometimes actually faster than using the `apply` functions, which are
 often used instead of loops: 
 https://lorentzen.ch/index.php/2022/02/19/avoid-loops-in-r-really/.
@@ -623,6 +625,7 @@ do the same thing.
 This example shows which method is faster to get the square root of a million numbers
 by calculating the execution time for each.
 
+<<<<<<< HEAD
 ```{r loop speed check example, eval=TRUE, include=TRUE}
 d1 <- as.numeric(seq(1, 1e6)) # create a vector of 1 to 1 million
 d2 <- vector(length = 1e6)    # create empty vector to hold results in loop
@@ -642,6 +645,7 @@ What fun is data if you can't visualize it? Let's plot the `yearly_max` data fra
 that we created above. Because we are going to use the first column as the x values
 and the second column as the y values, we can use the `plot` function defaults.
 
+
 ```{r plot function, echo=TRUE, eval=TRUE}
 plot(yearly_max)
 ```
@@ -654,6 +658,7 @@ lines(yearly_max, col = 'red', lwd = 2)
 ```
 
 What about the axis labels? We can override the defaults and add more descriptive label and a title.
+
 ```{r add legend to plot, echo=TRUE, eval=TRUE}
 
 plot(yearly_max, xlab = 'Year',ylab = 'Discharge (m³/s)',
@@ -691,7 +696,8 @@ Let's take a look at some of the more useful packages and functions in R, as it 
 their own ways of being formatted for printing and plotting. Creating these objects (of types S3 and S4)
 is a _very_ advanced topic. For now, you just need to know that they exist!
 
-When you do a linear regression of one variable against another (using the `lm` function), the result is an S3 object. So when you `print` and `plot` the regression, you get customized outputs. Note that
+When you do a linear regression of one variable against another (using the `lm` function), the result is an S3 object.
+So when you `print` and `plot` the regression, you get customized outputs. Note that
 because the `plot` function returns 4 different plots, you will be prompted to
 hit [Return] to see each one (if you type the command at the console) or
 to click on the figures (if you run the chunk).
@@ -706,12 +712,14 @@ print(fit)
 summary(fit)        # shows more information including R²
 plot(fit)
 ```
+
 If you look in the **Environment** tab, you can see that the variable
 `fit`, which holds the result of the linear model fit, is a list.
 
 To extract the slope and intercept of the fitted linear model,
 you can use the `coefficients` function. To extract R², you need
 to use the `summary` function shown above.
+
 
 ```{r lm_example2, echo=TRUE}
 # extract slope and intercept

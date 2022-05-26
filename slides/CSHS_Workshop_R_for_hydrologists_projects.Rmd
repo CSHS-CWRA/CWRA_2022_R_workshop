@@ -89,6 +89,7 @@ the project
 
 ## git branches
 - _ALWAYS_ create a new branch before working on a project
+<<<<<<< HEAD
   - if you don't it will be a huge PITA
 - Click on **New Branch** button in the **Git** tab
 ![](figures/new_branch.png)
@@ -130,5 +131,8 @@ on the Commit button
 - When you create a project, you select Version Control and then indicate the source to clone from
 
 ![](figures/new_project.png){width=40%}  ![](figures/git.png){width=40%}  
+=======
+  - if you don't it will be a PITA
+>>>>>>> 9cc47c4cecefde3535c7cc3b3b6101b167483ecd
 
 
