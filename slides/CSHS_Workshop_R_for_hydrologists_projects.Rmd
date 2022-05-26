@@ -1,0 +1,94 @@
+---
+title: "CSHS Workshop: R for hydrologists - projects"
+author: 
+- Kevin Shook 
+- Paul Whitfield 
+- Daniel Moore 
+
+institute: 
+- Canadian Society for Hydrological Sciences (CSHS)
+
+subtitle: 'CWRA 2022'
+date: 'June 4, 2022'
+header-includes:
+- \titlegraphic{\centering \includegraphics[width=4cm]{figures/cshslogo_2019.png}}
+output: 
+  beamer_presentation:
+    keep_tex: true
+    theme: "default"
+    colortheme: "whale"
+    includes:
+      urlcolor: blue      
+classoption: "aspectratio=169"
+
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+## Why create a project?
+- Makes your code more reproducible
+- Keeps code separate from other projects
+- Lets your code work with `git` and **GitHub**
+- Basis for creating packages
+
+
+## How to create a project
+- Command is **File | New Project**
+- Several alternatives appear
+
+![](figures/new_project.png){width=50%}
+
+
+## Decisions, decisions....
+- New Directory  
+   - allows you to create any type of project, including packages 
+   - can use **git** (always a good idea), _but_
+   - _won't_ work with **GitHub**
+  
+- Existing Directory  
+   - only creates a simple project
+   - doesn't set up **git**, but you can add it later
+   - _won't_ work with **GitHub**
+
+- Version Control  
+    - clones a project from a repository like **GitHub** or **GitLab**
+    - project has to be set up on the repository _first_
+
+
+## .Rproj file
+- Every project contains a project file (`project_name.Rproj`)
+  - a text file which contains the project settings
+- Double-clicking on the file in your file manager will load **RStudio** with
+the project
+    - default directory will be set to the project directory
+- Can also load a project manually in **RStudio** using  
+**File | Open Project** or   
+**File | Recent Projects**
+- You can only have one project open at a time
+  - opening a project will close your current project
+  
+## git
+- **git** is a program for version control 
+- Created by Linus Torvalds (creator of Linux)
+- Allows you to manage versions of your documents
+- **RStudio** allows you to do most operations without typing commands
+  - if you screw up, you _will_ have to type **git** commands
+- Can sync with **GitHub**
+
+## Working with git
+- **git** is based on _branches_
+  - each branch is a separate set of files
+- There is always a **main** (or **master**) branch
+  - best version of the files
+- When a branch is ready, it can be merged into the **main** branch
+- You can switch between branches at any time
+
+## git branches
+- _ALWAYS_ create a new branch before working on a project
+  - if you don't it will be a PITA
+
+

@@ -1,0 +1,687 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  ignorenonframetext,
+  aspectratio=169]{beamer}
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+% Prevent slide breaks in the middle of a paragraph
+\widowpenalties 1 10000
+\raggedbottom
+\setbeamertemplate{part page}{
+  \centering
+  \begin{beamercolorbox}[sep=16pt,center]{part title}
+    \usebeamerfont{part title}\insertpart\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+  \centering
+  \begin{beamercolorbox}[sep=12pt,center]{part title}
+    \usebeamerfont{section title}\insertsection\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{part title}
+    \usebeamerfont{subsection title}\insertsubsection\par
+  \end{beamercolorbox}
+}
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usecolortheme{whale}
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={CSHS Workshop: R for hydrologists - building packages},
+  pdfauthor={Kevin Shook; Paul Whitfield; Daniel Moore},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\newif\ifbibliography
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\titlegraphic{\centering \includegraphics[width=4cm]{figures/cshslogo_2019.png}}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{CSHS Workshop: R for hydrologists - building packages}
+\subtitle{CWRA 2022}
+\author{Kevin Shook \and Paul Whitfield \and Daniel Moore}
+\date{June 4, 2022}
+\institute{Canadian Society for Hydrological Sciences (CSHS)}
+
+\begin{document}
+\frame{\titlepage}
+
+\begin{frame}{Why create a package?}
+\protect\hypertarget{why-create-a-package}{}
+\begin{itemize}
+\tightlist
+\item
+  The best way to distribute \textbf{R} code
+\item
+  Makes your code reproducible
+
+  \begin{itemize}
+  \tightlist
+  \item
+    makes code reusable
+  \item
+    improves code quality
+  \item
+    takes care of dependencies
+  \item
+    self-documenting
+  \item
+    should work for anyone, on any computer
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Building a package}
+\protect\hypertarget{building-a-package}{}
+\begin{itemize}
+\tightlist
+\item
+  All components are text files
+
+  \begin{itemize}
+  \tightlist
+  \item
+    You could build them manually
+  \end{itemize}
+\item
+  \textbf{DON'T!}
+\item
+  Use the package \textbf{devtools}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    makes it \emph{much} easier
+  \end{itemize}
+\item
+  Also, install packages \textbf{roxygen2, rmarkdown}
+\item
+  Need LaTex installed to create manuals
+\item
+  Also, make sure to have \textbf{git} installed on your system
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Mandatory package components}
+\protect\hypertarget{mandatory-package-components}{}
+\begin{itemize}
+\tightlist
+\item
+  2 Files
+
+  \begin{itemize}
+  \tightlist
+  \item
+    DESCRIPTION
+  \item
+    NAMESPACE
+  \end{itemize}
+\item
+  2 directories are mandatory
+
+  \begin{itemize}
+  \tightlist
+  \item
+    /R -- contains code .R files
+  \item
+    /man -- contains documentation .Rd files
+  \end{itemize}
+\item
+  may have other directories
+\end{itemize}
+\end{frame}
+
+\begin{frame}{DESCRIPTION}
+\protect\hypertarget{description}{}
+\begin{itemize}
+\tightlist
+\item
+  Contains package description
+\item
+  Has to have a specific format
+\item
+  Has to indicate the packages required by your package
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{DESCRIPTION example from CSHShydRology}
+\protect\hypertarget{description-example-from-cshshydrology}{}
+\begin{verbatim}
+Type: Package
+Package: CSHShydRology
+Title: Canadian Hydrological Analyses
+Version: 1.2.1
+Date: 2022-04-17
+Authors:...
+Author:...
+Maintainer: Kevin Shook <kevin.shook@usask.ca>
+Description: A collection of user submitted functions to aid in the analysis of hydrological data.
+License: AGPL-3 
+URL: https://github.com/CSHS-hydRology/CSHShydRology
+Depends: 
+    R (>= 4.0.0)
+Imports: 
+   ...
+VignetteBuilder: knitr
+LazyData: true
+RoxygenNote: 7.1.2
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{NAMESPACE}
+\protect\hypertarget{namespace}{}
+\begin{itemize}
+\tightlist
+\item
+  Contains detailed information about imports and exports of each
+  function
+\item
+  Do NOT create or edit this file
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{roxygen2} will automatically create and maintain it
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{R directory}
+\protect\hypertarget{r-directory}{}
+\begin{itemize}
+\tightlist
+\item
+  Contains the \textbf{R} code
+\item
+  Code must be written as functions
+\item
+  Each function must be in a separate file
+
+  \begin{itemize}
+  \tightlist
+  \item
+    file name is same as function name
+  \item
+    file extension must be \textbf{.R}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{man directory}
+\protect\hypertarget{man-directory}{}
+\begin{itemize}
+\tightlist
+\item
+  Contains the documentation files
+\item
+  Creates the help system for the package
+\item
+  Also creates the manual
+\item
+  Each .R file has a .Rd file in \textbf{man}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Don't create these files manually
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{roxygen2}
+\protect\hypertarget{roxygen2}{}
+\begin{itemize}
+\tightlist
+\item
+  Used by \textbf{devtools}, installed by it
+\item
+  Automatically creates the .Rd files
+
+  \begin{itemize}
+  \tightlist
+  \item
+    uses comments at the beginning of each \textbf{.R} file
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Example}
+\protect\hypertarget{example}{}
+\begin{itemize}
+\tightlist
+\item
+  All lines begin with \textbf{\#'}
+\item
+  First line contains a 1 line description of the file
+\item
+  Should not end with a period!
+\item
+  Example:
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Tags}
+\protect\hypertarget{tags}{}
+\end{frame}
+
+\begin{frame}{Formatting}
+\protect\hypertarget{formatting}{}
+\begin{itemize}
+\tightlist
+\item
+  Documentation can include formatting codes
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Example}
+\protect\hypertarget{example-1}{}
+\end{frame}
+
+\begin{frame}{Package function}
+\protect\hypertarget{package-function}{}
+\begin{itemize}
+\tightlist
+\item
+  You should create a function that has the name of your package
+\item
+  Example: WISKIr-package.R
+\item
+  Contains information to create NAMESPACE
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Example}
+\protect\hypertarget{example-2}{}
+\end{frame}
+
+\begin{frame}{Other folders}
+\protect\hypertarget{other-folders}{}
+\begin{itemize}
+\tightlist
+\item
+  You may see these folders in packages:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    /data, data files used by the package
+  \item
+    /vignettes, documentation written in Markdown
+  \item
+    /inst, contains the file CITATION showing how to cite the package
+  \item
+    /src, source code written in C, C++ or Fortran
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Workflow}
+\protect\hypertarget{workflow}{}
+\begin{enumerate}
+\tightlist
+\item
+  Create the package
+\item
+  Add code
+\item
+  Build package
+\item
+  Check package
+\item
+  Create package file
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{1. Creating the package}
+\protect\hypertarget{creating-the-package}{}
+\begin{itemize}
+\tightlist
+\item
+  Create a new project in a new directory
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{File\textbar New Project}
+  \item
+    select \textbf{R Package}
+  \item
+    then give your package a name and a location
+  \end{itemize}
+\item
+  Make sure to use git! \includegraphics{figures/package.png}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{New package}
+\protect\hypertarget{new-package}{}
+\begin{itemize}
+\tightlist
+\item
+  R studio will create all of the files and directories
+
+  \begin{itemize}
+  \tightlist
+  \item
+    /R
+  \item
+    /man
+  \item
+    DESCRIPTION
+  \item
+    NAMESPACE
+  \end{itemize}
+\item
+  Also creates a sample file \textbf{hello.R} in /R
+\item
+  Adds folders and files for git
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Setting up roxygen}
+\protect\hypertarget{setting-up-roxygen}{}
+\begin{itemize}
+\tightlist
+\item
+  Not enabled by default
+\item
+  Set it up using \textbf{Tools\textbar Project Options}
+\end{itemize}
+
+\includegraphics{figures/project_options.png} \#\# Set roxygen options -
+Configure to run automatically\\
+\includegraphics{figures/roxygen_options.png}
+\end{frame}
+
+\begin{frame}{2. Adding R code}
+\protect\hypertarget{adding-r-code}{}
+\begin{itemize}
+\tightlist
+\item
+  Put your R code files in /R
+\item
+  Must be functions
+
+  \begin{itemize}
+  \tightlist
+  \item
+    one function per file
+  \end{itemize}
+\item
+  Add the roxygen skeleton to your code for each file
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{Code\textbar Insert Roxygen Skeleton}
+  \end{itemize}
+\item
+  Fill in skeleton
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Example}
+\protect\hypertarget{example-3}{}
+\end{frame}
+
+\begin{frame}[fragile]{Converting your R code}
+\protect\hypertarget{converting-your-r-code}{}
+\begin{itemize}
+\tightlist
+\item
+  You will ned to make some changes to your code
+\item
+  Don't use the \textbf{library()} function to load packages
+
+  \begin{itemize}
+  \tightlist
+  \item
+    package importation handled by \texttt{NAMESPACE}
+  \end{itemize}
+\item
+  Specify the name of the package in every function (outside of your
+  package and Base R) call
+
+  \begin{itemize}
+  \tightlist
+  \item
+    syntax is \textbf{package::function}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{3. Building package}
+\protect\hypertarget{building-package}{}
+\begin{itemize}
+\tightlist
+\item
+  Use command \textbf{Build \textbar{} Clean and Rebuild}
+\item
+  Expect to get error messages!
+\item
+  Fix until package builds
+\item
+  If the package builds, it will be added to your list of packages
+\end{itemize}
+\end{frame}
+
+\begin{frame}{4. Checking the package}
+\protect\hypertarget{checking-the-package}{}
+\begin{itemize}
+\tightlist
+\item
+  Just because a package can build, doesn't mean that it is good!
+\item
+  Use command \textbf{Build\textbar Check}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    does a detailed check of entire package
+  \item
+    tries to run your examples
+  \item
+    \emph{very} picky
+  \item
+    you will get many, many errors and warnings
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Writing better code}
+\protect\hypertarget{writing-better-code}{}
+\begin{itemize}
+\tightlist
+\item
+  Turn on Code Diagnostics using \textbf{Tools\textbar Global Options}
+\end{itemize}
+
+\includegraphics{figures/diagnostics.png}
+\end{frame}
+
+\begin{frame}{5. Creating the package file}
+\protect\hypertarget{creating-the-package-file}{}
+\begin{itemize}
+\tightlist
+\item
+  2 options:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{Build \textbar{} Build Source Package} - contains source
+    code (all languages)
+  \item
+    \textbf{Build \textbar{} Build Binary Package} - contains compiled
+    Fortran, C, C++ code
+  \end{itemize}
+\item
+  Reason is that Windows computers usually don't have compilers
+\item
+  If just using \textbf{R} code, make it a source package
+\item
+  If you are using Fortran, C, C++, create both types
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Building the manual .pdf}
+\protect\hypertarget{building-the-manual-.pdf}{}
+\begin{itemize}
+\tightlist
+\item
+  When the package is built, should also create the .pdf
+\item
+  Must have LaTex installed
+\item
+  For some reason, this doesn't work for me
+
+  \begin{itemize}
+  \tightlist
+  \item
+    have to do it manually
+  \item
+    type in this command in the \textbf{R} console:
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Copying an existing repository}
+\protect\hypertarget{copying-an-existing-repository}{}
+\begin{itemize}
+\tightlist
+\item
+  You can create a package by cloning an existing git repository
+\item
+  \textbf{File\textbar New Project} and select \textbf{Version Control}
+\item
+  Works with GitHub - just enter the url
+\item
+  Try this one: \url{https://github.com/CentreForHydrology/WISKIr}
+  \includegraphics{figures/git.png}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Using git}
+\protect\hypertarget{using-git}{}
+\begin{itemize}
+\tightlist
+\item
+  Every time you change your code, commit the changes to your git
+  repository
+\item
+  If you make a mistake, you can go back to an older version
+\end{itemize}
+
+\includegraphics{figures/commit.png}
+\end{frame}
+
+\begin{frame}{Misc.}
+\protect\hypertarget{misc.}{}
+\begin{itemize}
+\tightlist
+\item
+  Make sure you specify a licence for your code\\
+  \url{https://choosealicense.com/}
+\item
+  Don't forget to update the version number in DESCRIPTION
+
+  \begin{itemize}
+  \tightlist
+  \item
+    version \textless{} 1.0.0 -- not ready for outside use
+  \item
+    use major.minor.patch numbers\\
+    \url{https://semver.org/}
+  \end{itemize}
+\item
+  Remember to update the date in DESCRIPTION
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Unit tests}
+\protect\hypertarget{unit-tests}{}
+\begin{itemize}
+\tightlist
+\item
+  New feature, part of \textbf{devtools}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    tests the results of functions
+  \item
+    compares function outputs to known values
+  \item
+    allows automated testing of functions
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\end{document}

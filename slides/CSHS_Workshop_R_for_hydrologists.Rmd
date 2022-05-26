@@ -161,7 +161,6 @@ Example
 and create the output
 
 
-
 ## Basic R tasks
 The file `Introduction_to_R_Tutorial.Rmd` contains exercises to
 work through. 
@@ -173,15 +172,20 @@ work through.
 You can either 
 
 - execute each line one at a time by putting your cursor in the line and hitting [Ctrl][Enter] 
-- execute each chunk separately
+- execute each chunk separately by clicking on the green arrow button
 
 When you are finished, you can `knit` the tutorial. You will get a .pdf
 which will be a useful reference.
 
 ## Getting help
 - There is a lot of help in **RStudio**
-- For online help, use https://rseek.org/.
-- Check the R reference card in the  /data directory
+- For online help, use <https://rseek.org/.>
+- Check the R reference card in the `/data` directory
 
+## Suggested options
+- In **Tools | Global Options** enable _all_ **R Diagnostics** under "Code" 
+- Will check for errors and will nag you about your code style   
+
+![](figures/options.png){width=40%}
 
 

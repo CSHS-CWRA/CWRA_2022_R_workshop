@@ -1,0 +1,43 @@
+---
+title: "CSHS Workshop: R for hydrologists - packages"
+author: 
+- Kevin Shook 
+- Paul Whitfield 
+- Daniel Moore 
+
+institute: 
+- Canadian Society for Hydrological Sciences (CSHS)
+
+subtitle: 'CWRA 2022'
+date: 'June 4, 2022'
+header-includes:
+- \titlegraphic{\centering \includegraphics[width=4cm]{figures/cshslogo_2019.png}}
+output: 
+  beamer_presentation:
+    keep_tex: true
+    theme: "default"
+    colortheme: "whale"
+    includes:
+      urlcolor: blue      
+classoption: "aspectratio=169"
+
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## **R** Packages
+
+- **R** packages are special types of projects
+- Only hold functions - do _not_ use them for Notebooks
+- Great for distributing your work to others
+- Also useful for making your own work more reproducible
+- _Must_ contain documentation for all functions
+- Can also contain test data sets
+
+## Creating a package
+- Click on **File | 
+
+

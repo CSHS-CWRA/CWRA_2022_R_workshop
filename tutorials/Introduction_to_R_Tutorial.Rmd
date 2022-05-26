@@ -12,14 +12,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction to R Tutorial
 
-This beginner R tutorial is intended to provide some background training on using **R** for new users 
-* Navigating RStudio  
-* Basic R Syntax  
-* Data types in R  
-* Getting help in R  
-* Installing and Exploring Packages  
-* Data checking and sample data sets  
-* Creating plots (base and ggplot)  
+This beginner R tutorial is intended to provide some background training on using **R** for new users  
+
+- Getting help in R   
+- Basic R Syntax  
+- Data types
+- Flow control  
+- Creating plots (base R)  
 
 
 
@@ -29,7 +28,7 @@ This document was generated using **[R Markdown](https://rmarkdown.rstudio.com/a
 
 This document will have a number of headings, text blocks (like this one), and code blocks that are run as the document is compiled. This allows you to see the script and output in one document (plus the code gets run and checked for errors as the document is made, which helps to reduce typos in the document code sections).
 
-If youn just one to run one line in the chunk you can place your cursor in one line and press CTRL+ENTER to run that one line (CMD+ENTER for Mac). Here's an example with just one line
+If you want to run one line in the chunk you can place your cursor in one line and press CTRL+ENTER to run that line (CMD+ENTER for Mac). Here's an example with just one line
 
 ```{r comment example}
 # this is a comment in R. It is preceded by an octothorpe (or pound symbol, 
@@ -68,7 +67,10 @@ Finally, if you place your cursor within the function name in your chunk and pre
 If you are using the RStudio interface, the help for functions should appear on the right side of your screen in the Help menu. If you don't see the Files/Plots/Help menu, then at the top menu, click on *View --> Panes --> Show All Panes*, and your layout should be restored.
 
 
-For more resources, check out the CRAN website (<https://cran.r-project.org/>) for information, documentation, etc. StackOverflow and similar forums are also extremely helpful for R!
+For more resources, check out the CRAN website (<https://cran.r-project.org/>) for information, documentation, etc. 
+
+It's hard to Google "R". To search for help on **R** topics use <https://rseek.org/>.
+
 
 
 \newpage
@@ -119,7 +121,7 @@ work even more reproducible. The functions can
 be stored in an **R** package
 
 
-### Data Exploration and Data Types
+### Checking data types
 
 Here are some commands to check what type of data you are dealing with, and help you convert between different types.
 
@@ -611,7 +613,7 @@ plot(yearly_max)
 lines(yearly_max, col = 'red', lwd = 2)
 ```
 
-What about the axis labels? We can override the defaults and add more descriptive labels. Perhaps a title and legend as well.
+What about the axis labels? We can override the defaults and add more descriptive label and a title.
 ```{r add legend to plot, echo=TRUE, eval=TRUE}
 
 plot(yearly_max, xlab = 'Year',ylab = 'Discharge (m³/s)',
@@ -633,7 +635,7 @@ dev.off() # release focus from the png file, return to RStudio
 
 ```
 
-You should see an image file (.png) in the active R folder (i.e. the one shown by the **getwd()** command).
+You should see an image file (.png) in the current folder (i.e. the one shown by the **getwd()** command).
 
 Note that if you ever need to change the active directory you are in, you can use the **setwd** function. This may be needed if you want to work in a specific directory to conveniently load data during your session. 
 
@@ -688,15 +690,15 @@ the packages make **R** much more powerful.
 
 ### ggplot2
 
-`ggplot2`, which is part of the `tidyverse`,
-gets its name because it incorporates a "Grammar of Graphing". It generates plots in a fundamentally different way than the base plot. With base plots, the plot is a static image that needs to be redrawn if changes are required. In contrast, the `ggplot` function returns an object, which contains all of the data and plot formatting used to generate the plot. The `ggplot` object can then be stored, recalled and plotted, or further modified. Although `ggplot2` works
+**ggplot2**, which is part of the **tidyverse**,
+gets its name because it incorporates a "Grammar of Graphing". It generates plots in a fundamentally different way than the base plot. With base plots, the plot is a static image that needs to be redrawn if changes are required. In contrast, the `ggplot` function returns an object, which contains all of the data and plot formatting used to generate the plot. The `ggplot` object can then be stored, recalled and plotted, or further modified. Although **ggplot2** works
 very differently from the base plot, and takes a while to learn, it is much more powerful, and
 allows you to create more attractive plots very easily.
 
-Fortunately, there is a lot of help available to learn `ggplot2`, including a dedicated
+Fortunately, there is a lot of help available to learn **ggplot2**, including a dedicated
 web site (https://ggplot2.tidyverse.org/reference/) and even a free book: https://ggplot2-book.org/.
 
-The basic components of a `ggplot2` plot are:
+The basic components of a **ggplot2** plot are:
 
 * the `ggplot` call;
 * supplying data, usually as a data frame or similar format;
@@ -723,7 +725,7 @@ p2
 Examples of more complex plots that can be made using `ggplot2` can be found on the [r-statistics.co website](http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html).
 
 You can automatically add regression lines to plots. Saving your graph is a _lot_
-easier with `ggplot2` as it has a function `ggsave` which does all the work. The
+easier with **ggplot2** as it has a function `ggsave` which does all the work. The
 `width` and `height` are in inches by default, but you can use other units as well.
 
 ```{r}
@@ -750,7 +752,7 @@ function parameters (which can have default values). Use
 Here's a function that converts from Fahrenheit to Celsius.
 
 ```{r}
-f2c <- function(temp_f) {
+f2c <- function(temp_f){
   temp_c <- (temp_f - 32) / 1.8
   return(temp_c)
 }
@@ -761,6 +763,24 @@ To use your function, just call it like any other.
 temps_f <- seq(-40, 100, by = 20)
 f2c(temps_f)
 ```
+
+
+You can create a file to hold this function by clicking on
+**File | New File | R Script**. It creates an empty file.
+
+Now copy the function definition statement above and paste it
+into the new R Script.
+
+Save the file clicking  **File | Save**. Give the file a
+name ending in ".R". In this case call it "f2c.R".
+
+To load in the function, you can use the command
+
+```{r}
+source("f2c.R")
+```
+
+You will now see the function `f2c` listed in the Environment tab.
 
 
 \newpage
@@ -782,5 +802,6 @@ Get the mean daily discharge for each hydro year. Plot the values.
 
 Classify the flows by quarter: q1 = Jan-Mar, q2 = April-June,
 q3 = July-September, q4 = October-December.
-Plot the flows facetted by each quarter using ggplot2.
+Plot the flows facetted by each quarter using **ggplot2**
+with the function `facet_wrap`.
 
