@@ -625,7 +625,6 @@ do the same thing.
 This example shows which method is faster to get the square root of a million numbers
 by calculating the execution time for each.
 
-<<<<<<< HEAD
 ```{r loop speed check example, eval=TRUE, include=TRUE}
 d1 <- as.numeric(seq(1, 1e6)) # create a vector of 1 to 1 million
 d2 <- vector(length = 1e6)    # create empty vector to hold results in loop
@@ -670,7 +669,7 @@ lines(yearly_max, col = 'red', lwd = 2)
 Want to output your plot to a file? Try this out.
 ```{r save a plot, eval=FALSE}
 # start a png file of the given name, all subsequent plotting is directed to the file
-png("01AD002_annual_max_daily.png") 
+png("../figures/01AD002_annual_max_daily.png") 
 
 plot(yearly_max, xlab='Year',ylab='Discharge (m³/s)',
      main='WSC Gauge 01AD002 annual max. daily discharge')
@@ -680,7 +679,16 @@ dev.off() # release focus from the png file, return to RStudio
 
 ```
 
-You should see an image file (.png) in the current folder (i.e. the one shown by the **getwd()** command).
+### File paths
+**R** uses POSIX (unix) standard file paths, meaning that it uses the `/` symbol
+to delimit directories and file names. This works well on Linux and MacOS, but
+if you are using Windows you have two alternatives:  
+1. Use the **R** standard paths, e.g. `c:/projects/current_project/figures/`, or  
+2. Use double `\\` symbols, e.g. `c:\\projects\\current_project\\figures\\`
+
+The example created the figure file in the `/figures` folder. The `..` refers to
+the parent directory of the directory you are currently working in. Later,
+we will show a better way of referring to your local directories.
 
 Note that if you ever need to change the active directory you are in, you can use the **setwd** function. This may be needed if you want to work in a specific directory to conveniently load data during your session. 
 
