@@ -40,7 +40,8 @@ Creating documents in RMarkdown - Dan Moore
 As this is a workshop, you will need a laptop with **R** and **Rstudio** pre-installed.
 We won't have time to help you with the installation, so please make sure that
 your system is working ahead of time. This is especially important if you have a
-computer from your employer. _Please_ talk to your IT people ahead of time to make sure that
+computer from your employer. Please talk to your IT people ahead of time to make sure that
+everything is installed correctly.
 
 ## Installing **R**
 
@@ -80,7 +81,7 @@ install_whitebox()
 
 The package **ggplot2** is used very widely for graphs. We have a few exercises which
 use it, so it would be a good idea to install it. It is installed in the
-same was as `CSHShydRology`.
+same as was `CSHShydRology`.
 
 ### Rmarkdown
 We will be using the package `rmarkdown` to create documents, so you should
