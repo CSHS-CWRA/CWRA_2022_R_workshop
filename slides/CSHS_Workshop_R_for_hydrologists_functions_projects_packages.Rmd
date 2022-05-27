@@ -7,7 +7,7 @@ institute:
 - Canadian Society for Hydrological Sciences (CSHS)
 
 subtitle: 'CWRA 2022'
-date: 'June 4, 2022'
+date: 'June 5, 2022'
 header-includes:
 - \titlegraphic{\centering \includegraphics[width=4cm]{figures/cshslogo_2019.png}}
 output: 
