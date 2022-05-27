@@ -87,22 +87,19 @@ same as was `CSHShydRology`.
 We will be using the package `rmarkdown` to create documents, so you should
 also install it. This allows you to create html documents. If you want to
 be able to export .pdf and .docx files, you will also need to install the program
-**Pandoc**   
-<https://pandoc.org/installing.html>
+**Pandoc**  <https://pandoc.org/installing.html>
 and **LaTeX**. Note that the **Pandoc** installation page also shows where you can obtain
 **LaTeX** for your system.
 
 ### git
 **git** is a distributed version control program. We will be showing how to
 use **git** with **RStudio** to manage the versions of your files. You can
-install **git** from here:  
-https://git-scm.com/downloads  
+install **git** from here: <https://git-scm.com/downloads>.
 
 ### devtools
 We will be showing how you can build packages in **R**, which requires installing
 the package `devtools`. Make sure that all the dependencies (there are many!) 
 are installed.
-
 
 
 # Setting up your workspace
