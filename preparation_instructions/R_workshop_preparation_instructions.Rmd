@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 # Welcome!
 
-Thank you for attending the **CSHS Workshop: R for hydrologists**.
+Thank you for attending the CSHS Workshop: **R for hydrologists**.
 The workshop will be interactive and will consist of the following sessions:  
 
 **Morning**  
@@ -40,7 +40,7 @@ Creating documents in RMarkdown - Dan Moore
 As this is a workshop, you will need a laptop with **R** and **Rstudio** pre-installed.
 We won't have time to help you with the installation, so please make sure that
 your system is working ahead of time. This is especially important if you have a
-computer from your employer. Please talk to your IT people ahead of time to make sure that
+computer from your employer - please talk to your IT people ahead of time to make sure that
 everything is installed correctly.
 
 ## Installing **R**
@@ -88,16 +88,21 @@ We will be using the package `rmarkdown` to create documents, so you should
 also install it. This allows you to create html documents. If you want to
 be able to export .pdf and .docx files, you will also need to install the program
 **Pandoc**   
-https://pandoc.org/installing.html  
+<https://pandoc.org/installing.html>
 and **LaTeX**. Note that the **Pandoc** installation page also shows where you can obtain
 **LaTeX** for your system.
 
 ### git
-
 **git** is a distributed version control program. We will be showing how to
 use **git** with **RStudio** to manage the versions of your files. You can
 install **git** from here:  
 https://git-scm.com/downloads  
+
+### devtools
+We will be showing how you can build packages in **R**, which requires installing
+the package `devtools`. Make sure that all the dependencies (there are many!) 
+are installed.
+
 
 
 # Setting up your workspace
@@ -106,12 +111,22 @@ The data files needed for these exercises can all be downloaded from **GitHub**,
 at <https://github.com/CSHS-CWRA/CWRA_2022_R_workshop>. 
 Note that to get the files you _must_ have an account on **GitHub**, which is free.
 
-To get the data,   
-1.  Go to <https://github.com/CSHS-CWRA/CWRA_2022_R_workshop/releases/tag/v0.9>  
-2.  Under **Assets** click on **Source code (zip)**  
+To get the data, follow the steps below.
+Note that the files are subject to change (we are working on the content), so it's
+a good idea to check to see if the files have been updated.  
+
+1.  Go to <https://github.com/CSHS-CWRA/CWRA_2022_R_workshop/releases>  
+You will see the current version number of the files. In this case, it's version 0.91,
+which is a pre-release version.
+The version(s) used by the workshop will be >= 1.0.  
+
+![](figures/releases.png){width=50%}  
+
+2.  Click on the triangle to the left of **Assets**  
+3.  Under **Assets** click on **Source code (zip)**  
 ![](figures/assets.png){width=30%}  
-3.  Download the .zip file to a folder on your hard drive.  
-4.  Extract the .zip file  
+4.  Download the .zip file to a folder on your hard drive.  
+5.  Extract the .zip file  
 
 This will create all of the folders that are required, with all of the data files
 that we will be using.
@@ -120,11 +135,8 @@ that we will be using.
 `/slides`  - contains all the slide presentations  
 `/data` - contains all the data sets required to complete the exercises  
 `/output` - where your code will write output  
+`/figures` - where your code will save figures  
+`/preparation_instructions` - this document  
 
-## Building packages
-
-We will be showing how you can build packages in **R**. This requires installing
-the package `devtools`. Make sure that all the dependencies (there are many!) 
-are installed.
 
 
