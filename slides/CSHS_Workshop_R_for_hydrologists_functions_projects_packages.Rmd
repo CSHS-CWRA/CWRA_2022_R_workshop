@@ -1,5 +1,5 @@
 ---
-title: "CSHS Workshop: R for hydrologists - functions, projects and packages"
+title: "CSHS Workshop: R for hydrologists  \nFunctions, projects and packages"
 author: 
 - Kevin Shook 
 
@@ -55,7 +55,7 @@ knitr::opts_chunk$set(echo = FALSE)
 - If you have **devtools** installed then you can use `roxygen` to
 insert a skeleton for the documentation
   - once skeleton is created, you can edit the tags
-  - **roxygen** tags area used by **R** to create package documentation
+  - **roxygen** tags are used by **R** to create package documentation
 - Still need to add comments to describe what your code is doing
 
 ## Exercise
