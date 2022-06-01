@@ -14,7 +14,7 @@ header-includes:
 - \titlegraphic{\centering \includegraphics[width=4cm]{figures/cshslogo_2019.png}}
 output: 
   beamer_presentation:
-    keep_tex: true
+    keep_tex: false
     theme: "default"
     colortheme: "whale"
     includes:
@@ -150,7 +150,7 @@ Example
 
 
 ## Loading and creating notebooks
-- To load a Notebook, double-click on the file or
+- To load a Notebook double-click on the file or
   - select **File|Open File**
 - To create a new Notebook
   - select **File|New File|R Notebook**
@@ -168,11 +168,14 @@ work through.
 - If you haven't used **R** very much, start at the beginning
 - If you are finding these too easy, skip to the **Advanced R** section
 
-## How to run the tutorials
-You can either 
+## How to run the tutorial
+1. Navigate to `tutorials` folder in the "Files" tab
+2. Set it as your working directory in the "More" menu ![](figures/more_menu.png){width=10%}  
+3. Load the file `Introduction_to_R_Tutorial.Rmd` 
+4. Run the example chunks either by
 
-- execute each line one at a time by putting your cursor in the line and hitting [Ctrl][Enter] 
-- execute each chunk separately by clicking on the green arrow button
+- executing each line one at a time by putting your cursor in the line and hitting [Ctrl][Enter], or
+- executing each chunk separately by clicking on the green arrow button
 
 When you are finished, you can `knit` the tutorial. You will get a .pdf
 which will be a useful reference.
