@@ -1,0 +1,143 @@
+---
+title: "looping and file selection"
+author: "P,H, Whitfield"
+date: "`r format(Sys.time(), '%Y-%B-%d')`"
+output:
+  bookdown::html_document2:
+    number_sections: yes
+    theme: "cerulean"
+    toc: yes
+    toc_float: yes
+  bookdown::pdf_document2:
+    toc: yes
+    number_sections: yes
+  bookdown::word_document2:
+    toc: yes
+---
+
+# Load required libraries
+
+Run the code chunk below to load the libraries required for this workbook.
+
+```{R, warning = FALSE, message = FALSE}
+library(knitr)
+library(bookdown)
+library(here)
+
+library(CSHShydRology)
+library(tidyhydat)
+library(whitebox)
+
+# wtb_init(exe_path='C:/Users/paulh/Documents/R/win-library/4.1/whitebox/WBT/whitebox_tools.exe')
+
+hy_set_default_db("C:/Program Files (x86)/ECCC/ECDataExplorer/Database")
+```
+
+# Introduction
+
+This document demonstrates some of the CSHShydRology package functions that deal with examining the quality of the data.
+
+# getting file lists  
+
+
+```{r}
+
+rd <- here::here()
+rd
+
+# get the names of files containing flow data
+files  <- list.files(here::here("data"))
+
+files
+
+
+```
+
+
+So, we see this directory contains files of different types and we only want the files from ECDE.
+
+
+
+```{r}
+
+
+# get the names of files containing flow data
+files  <- list.files(here::here("data"), pattern = "Daily_Flow_ts.csv")
+
+files
+
+
+```
+```{r, echo=TRUE}
+
+f_in <- read.csv(here::here("data",files[1]))
+
+str(f_in)
+
+head(f_in)
+
+tail(f_in)
+
+
+```
+
+We see several things. 
+
+1. Date is character
+2. There are three lines without data, but with a Notice about the data.  We get around this by using `ch_read_WSC_flows()`
+
+```{r, echo=TRUE}
+
+f_in <- ch_read_ECDE_flows(here::here("data",files[1]))
+
+str(f_in)
+
+head(f_in)
+
+tail(f_in)
+
+
+```
+
+# looping over files
+
+Now we cna use a loop to produce a plot for each file and get summary information into a data frame.  A key thing it to think about having a link in the new dataframe that can be used to connect to other dataframes such as those that contain metadata or other results.  Here we used the stationID.
+
+```{r, echo=TRUE}
+nn <- 13
+result <- array(NA, dim = c(length(files), nn))
+
+for (kk in 1:length(files)) {
+     
+     f_in <- ch_read_ECDE_flows(here::here("data",files[kk]))
+   
+     result[kk,1]    <-  f_in[1,1]  #stationID
+     result[kk,2:7]  <-  summary(f_in$Date)
+     result[kk,8:13] <-  summary(f_in$Flow)
+     
+  # generate a raster plot of the flow data
+     ch_flow_raster(f_in)
+}
+
+result <- data.frame(result)
+
+colnames(result) <- c("StationID", "Date_min", "d_25", "d_median", "d_mean", "d_75", "Date_max",
+                     "Q_min", "Q_25", "Q_median", "Q_mean", "Q_75", "Q_max")
+
+print(result)
+
+write.csv(result,here::here("output","sample.csv"))
+
+```
+
+# other functions
+
+It is easy to see what other functions are available in CSHShydRology. The following will go to the main help page.
+
+
+At the bottom of the help screen you will see a link to "Index". Follow that and you will get a list of all the package help pages.  
+
+
+Now modify the looping structure above to produce regime plots for the first five files.
+
+

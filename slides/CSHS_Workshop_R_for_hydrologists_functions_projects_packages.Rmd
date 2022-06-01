@@ -145,8 +145,8 @@ the project
 ## git branches
 - _ALWAYS_ create a new branch before working on a project
   - if you don't it will be a huge PITA
-- Click on **New Branch** button in the **Git** tab
-![](figures/new_branch.png)
+- Click on **New Branch** button in the **Git** tab  
+![](figures/new_branch.png){width=50%}
 
 ## Committing
 - When you have finished some work, you can commit your changes by 
@@ -154,8 +154,8 @@ the project
  - clicking on **Commit** in the **Git** tab
 - You will then see a window which lets you review your changes
 - You **must** type a Commit message describing your changes before clicking
-on the Commit button
-![](figures/commit.png)
+on the Commit button  
+![](figures/commit.png){width=50%}
 
 
 ## Exercise
@@ -260,14 +260,14 @@ on the Commit button
 
 ## Example
 
-- All lines begin with **#'**
+- All lines begin with `#`
 - First line contains a 1 line description of the file
 - Should not end with a period!
-- Example:  
+
 
 ## Tags
 
-```{r, eval=FALSE}
+```{r, eval=FALSE, echo =TRUE}
 #' @description - optional multi-line desciption  
 #' @param - required for each parameter  
 #' @return - required, specifies return value of function    
@@ -278,7 +278,7 @@ on the Commit button
 
 ## Formatting
 - Documentation can include formatting codes
-```{r ,eval=FALSE}
+```{r ,eval=FALSE, echo =TRUE}
 \pkg{} - package
 \option{} - option
 \emph{} - emphasis
@@ -286,7 +286,7 @@ on the Commit button
 ```
 
 ## Example
-```{r, eval=FALSE}
+```{r, eval=FALSE, echo =TRUE}
 #' Calculates quantile values for a Quantile-Quantile plot   
 #' @description The built-in \code{qqplot} function does not work with \pkg{ggplot2}. This just calls the qqplot function to caclulate the quantiles without plotting them.  
 #' @param x Required. A numeric vector.  
@@ -326,16 +326,16 @@ on the Commit button
 - Create a new project in a new directory  
   - **File|New Project**
   - select **R Package**
-  - then give your package a name and a location
-- Make sure to use **git**!
-![](figures/package.png)
+  - then give your package a name and a location  
+- Make sure to use **git**!  
+![](figures/package.png){width=50%}
 
 ## New package
-- R studio will create all of the files and directories
-  - /R
-  - /man
-  - DESCRIPTION
-  - NAMESPACE
+- **Rstudio** will create all of the files and directories
+  - `/R`
+  - `/man`
+  - `DESCRIPTION`
+  - `NAMESPACE`
 - Also creates a sample file **hello.R** in `/R`
 - Adds folders and files for **git**
 
@@ -343,10 +343,11 @@ on the Commit button
 - Not enabled by default
 - Set it up using **Tools|Project Options** 
 
-![](figures/project_options.png)
+![](figures/project_options.png){width=50%}  
+
 ## Set roxygen options
 - Configure to run automatically  
-![](figures/roxygen_options.png)
+![](figures/roxygen_options.png){width=50%}  
 
 ## 2. Adding R code
 - Put your R code files in /R

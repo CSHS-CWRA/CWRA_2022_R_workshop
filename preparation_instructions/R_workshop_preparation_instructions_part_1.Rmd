@@ -1,5 +1,5 @@
 ---
-title: "R workshop preparation instructions"
+title: "R workshop preparation instructions - part 1"
 author: 
 - Dan Moore
 - Kevin Shook
@@ -15,6 +15,10 @@ knitr::opts_chunk$set(echo = TRUE)
 # Welcome!
 
 Thank you for attending the CSHS Workshop: **R for hydrologists**.
+
+This is the first of 2 sets of instructions that you will receive. The second set
+will show you how to download the working files for the workshop.
+
 The workshop will be interactive and will consist of the following sessions:  
 
 **Morning**  
@@ -36,7 +40,7 @@ Writing your own functions - Paul Whitfield
 Creating documents in RMarkdown - Dan Moore  
 
 
-# Setup instructions
+# Setup instructions - part 1
 
 As this is a workshop, you will need a laptop with **R** and **Rstudio** pre-installed.
 We won't have time to help you with the installation, so please make sure that
@@ -72,12 +76,10 @@ Now type "CSHShydrology" into the dialog box. Make sure that the checkbox
 ### whitebox
 
 `CSHShydRology` requires the use of the package `whitebox`.
-It is installed in the same as was `CSHShydRology`, i.e.
-by selecting the
-**Packages** tab, typing "whitebox" as the package name and clicking the "Install" button.
+It should have been installed as a dependency when you installed `CSHShydRology`.
 
 `whitebox` also requires an executable program to be installed. 
-after the `whitebox` package is installed, you can install
+After the `whitebox` package is installed, you can install
 the executable program inside **RStudio** with the following commands:
 
 ```{r, echo = TRUE, eval= FALSE}
@@ -87,7 +89,7 @@ install_whitebox()
 
 
 ### ggplot2
-The package **ggplot2** is used very widely for graphs. We have a few exercises which
+The package `ggplot2` is used very widely for graphs. We have a few exercises which
 use it, so it would be a good idea to install it. It is installed in the
 same as was `CSHShydRology`.
 
@@ -109,39 +111,11 @@ We will be showing how you can build packages in **R**, which requires installin
 the package `devtools`. Make sure that all the dependencies (there are many!) 
 are installed.
 
-
-# Setting up your workspace
-
-The data files needed for these exercises can all be downloaded from **GitHub**,
-at <https://github.com/CSHS-CWRA/CWRA_2022_R_workshop>. 
-Note that to get the files you _must_ have an account on **GitHub**, which is free.
-
-To get the data, follow the steps below.
-Note that the files are subject to change (we are working on the content), so it's
-a good idea to check to see if the files have been updated.  
-
-1.  Go to <https://github.com/CSHS-CWRA/CWRA_2022_R_workshop/releases>  
-You will see the current version number of the files. In the case shown here, it's version 0.91,
-which is a pre-release version.
-The version(s) used by the workshop will be >= 1.0.  
-
-![](figures/releases.png){width=50%}  
-
-2.  Click on the triangle to the left of **Assets**  
-3.  Under **Assets** click on **Source code (zip)**  
-![](figures/assets.png){width=30%}  
-4.  Download the .zip file to a folder on your hard drive.  
-5.  Extract the .zip file  
-
-This will create all of the folders that are required, with all of the data files
-that we will be using.
-
-`/tutorials`  - contains the tutorials that you will be working through  
-`/slides`  - contains all the slide presentations  
-`/data` - contains all the data sets required to complete the exercises  
-`/output` - where your code will write output  
-`/figures` - where your code will save figures  
-`/preparation_instructions` - this document  
-
-
-
+### GitHub
+**GitHub** is a web site which works with **git** to share versions of files
+among people. It is very widely used in software development, including by
+the developers of `CSHShydRology`. In the next set of instructions, we will
+show you how to download the files needed for the workshop from **GitHub**. Therefore 
+you must first set up a **GitHub** account. The account is free of charge.
+You can register for **GitHub** at:
+<https://github.com/>.

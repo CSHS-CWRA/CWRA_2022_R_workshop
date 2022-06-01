@@ -1,0 +1,139 @@
+---
+title: "using qa functions"
+author: "P,H, Whitfield"
+date: "`r format(Sys.time(), '%Y-%B-%d')`"
+output:
+  bookdown::html_document2:
+    number_sections: yes
+    theme: "cerulean"
+    toc: yes
+    toc_float: yes
+  bookdown::pdf_document2:
+    toc: yes
+    number_sections: yes
+  bookdown::word_document2:
+    toc: yes
+---
+
+# Load required libraries
+
+Run the code chunk below to load the libraries required for this workbook.
+
+```{R, warning = FALSE, message = FALSE}
+library(knitr)
+library(bookdown)
+library(here)
+
+library(CSHShydRology)
+library(tidyhydat)
+
+```
+
+# Introduction
+
+This document demonstrates some of the CSHShydRology package functions that deal with examining the quality of the data.
+
+
+# using `ch_qa_hydrograph()`
+
+First, start by getting the data from an __ECDE__ file in a working directory using `ch_read_ECDE_flows()`. The function only needs a dataframe of daily flow data that is obtained by reading a daily flow data file from __ECDE__ or __tidyhydat__.   Here `ch_read_ECDE_flows()` is used to get that dataframe from __zenodo__ where a copy of the datafile is available.  
+
+
+```{r, echo=TRUE}
+
+# the target datafile "05CK004_Daily_Flow_ts.csv" is available on zenondo 
+
+url1 <- "https://zenodo.org/record/4612007/files/05CK004_Daily_Flow_ts.csv?download=1"
+
+e05CK004 <- ch_read_ECDE_flows(url1)
+
+str(e05CK004)
+
+
+
+```
+
+Now that we have the daily flow data in this form we can demonstrate the function `ch_qa_hydrograph()`.  First, we want to get the plot in the exact same form as ECDE. This plot shows the symbols on the hydrograph but not counts of SYM codes `(cts=FALSE)`. The colours associated with the SYM codes default to those used in ECDE, but can be changed by the user.  
+
+
+```{r, echo=TRUE, fig.width=9, fig.height=5 , fig.cap = "Figure 1. The daily streamflow plot with quality flags as would be generated in ECDE."}
+
+e_test <- ch_qa_hydrograph(e05CK004, cts = FALSE)
+
+
+
+```
+
+  
+
+The function `ch_qa_hydrograph()` returns a list (e_test) that contains [1] a character string of `StationID  StationName`, [2] the `start_date` if provided, [3] the `end_date` if provided, [4] the total number of data points, and [5] the `SYM_count`  [Default, A, B, C, D, E], and the number of `missing_observations`.
+
+```{r, echo=TRUE, fig.width=9, fig.height=5}
+
+str(e_test)
+
+
+
+```
+
+
+The default mode of the function `ch_qa_hydrograph()`  is the same  plot but the count of each SYM in the dataset, and the number of missing observations, are added to the legend. Frequently, it is difficult to visualize these details particularly the number of missing observations.
+
+
+```{r, echo=TRUE,fig.width=9, fig.height=5, fig.cap = "Figure 2. The default plot provides counts of symbol codes and the number of missing days in the legend."}
+
+
+m_test <- ch_qa_hydrograph(e05CK004)
+
+
+```
+
+Other options allow for selected date ranges and for keeping the y-axis scaling constant based on the entire dataset or allowing it to be rescaled for the selected range. This can be very helpful for screening data.  In the next example, we provide start and end dates, and allow the y-axis to be scaled for this time period.
+
+```{r, echo=TRUE,fig.width=9, fig.height=5, fig.cap = "Figure 3. Plot with code counts and the y-axis scaled based on this time period."}
+
+
+sdate <- "2015-01-01"
+edate <- "2019-12-31"
+m_test <- ch_qa_hydrograph(e05CK004, st_date = sdate, end_date = edate)
+
+```
+
+
+
+We can also choose to make the plot maintain the y-axis scaling for the entire dataset we would be used to plot multiple time periods with the scaling.  A simple loop would let you do a series of five or ten year periods to allow closer inspection of the record.  
+
+```{r, echo=TRUE,fig.width=9, fig.height=5, fig.cap = "Figure 4. Plot with code counts for a selected time period with y-axis as for the entire dataset."}
+
+m_test <- ch_qa_hydrograph(e05CK004, st_date = sdate, end_date = edate, rescale = TRUE)
+
+```
+
+
+Now we can look at the contents of `m_test` and see the details for this subset of the streamflow record.
+
+```{r, echo=TRUE,fig.width=9, fig.height=5}
+
+m_test
+
+```
+
+# using `ch_flow_raster1 and `ch_clow_raster_qa`
+
+Examining the data using a raster plot
+
+
+```{r, echo=TRUE,fig.width=9, fig.height=5, fig.cap = "Figure 5. Raster plot of flow magnitudes."}
+
+m_test <- ch_flow_raster(e05CK004)
+
+```
+
+Examining the data using a raster plot highlighting the qa symbols.
+
+
+```{r, echo=TRUE,fig.width=9, fig.height=5, fig.cap = "Figure 4. Raster plot of flows showing qa flags."}
+
+m_test <- ch_flow_raster_qa(e05CK004)
+
+```

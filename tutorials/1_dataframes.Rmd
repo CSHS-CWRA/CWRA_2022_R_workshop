@@ -1,0 +1,234 @@
+---
+title: "0_dataframes"
+author: "Paul Whitfield"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+require(CSHShydRology)
+```
+
+## dataframes
+
+Dataframes are a common two-dimensional data structure in `R`.  Technically, a data.frame is a list of vectors of equal length, and we normally think of this as some form of table with columns and rows.  Cases are the rows and variables the columns.  
+
+
+
+```{r, echo=TRUE}
+
+name <- c("Dan", "Kevin", "Robert", "Jason", "Paul")
+age <- c(61, 61, 32, 25, 70)
+home <- c("Galiano", "Saskatoon", "Waterloo", "Coquitlam", "Canmore")
+
+df <- data.frame(name, age, home)
+
+class(name)
+class(age)
+class(df)
+
+print (df)
+
+```
+# alternative method
+
+Here is an alternative way to create the data.frame.  In R there are usually multiple ways to get to the same place, but some are slower / faster.
+
+```{r, echo=TRUE}
+
+df1 <- data.frame(
+  name = c("Dan", "Kevin", "Robert", "Jason", "Paul"),
+  age = c(61, 61, 32, 25, 70),
+  home = c("Galiano", "Saskatoon", "Waterloo", "Coquitlam", "Canmore")
+)
+
+print(df1)
+
+```
+
+
+
+
+# find out about the data.frame
+
+Rather than listing the entire data.frame we can get details that could help understand the data.
+
+```{r, echo=TRUE}
+
+names(df)
+
+ncol(df)
+nrow(df)
+
+typeof(df)
+length(df)
+
+class(df)
+# so a data.frame is a special case of a list
+
+str(df)
+
+
+```
+
+
+# factors
+
+Need to know about factors.  Factors are useful grouping variables.  There are caes where strings including dates are interpreted as factors and that can create problems.
+
+
+```{r, echo=TRUE}
+
+test <- c("good", "good", "bad", "bad", "bad")
+
+df <- data.frame(df,test)
+df <- data.frame(df,test)
+
+str(df)
+
+df$test <-as.factor(df$test)
+
+str(df)
+
+
+```
+
+
+
+# accessing components of a dataframe
+
+We can use several operators to access columns [, [[, or $.  There is a differnce in the result: [ gives a dataframe, the others a vector.
+
+```{r, echo=TRUE}
+
+df["name"]
+
+df$name
+
+df[["name"]]
+
+df[[1]]
+
+
+```
+# access as a matrix
+
+reference to row then column
+
+Notice that the reference difference between [2,3], and [2,3,]
+
+
+
+```{r, echo=TRUE}
+
+df[2,3,]
+
+df[df$age >= 50,]
+
+df[2:5,3]
+
+df[2:5,3,]
+
+df[2:5,3, drop = FALSE]
+
+df[-(2:3),]
+
+## use of NA
+
+df[2,3] <- NA
+
+df
+
+df[!is.na(df$home),]
+
+
+```
+
+# adding to dataframe
+
+
+add a row with rbind [bind rows]
+
+add a column with cbind [column bind] or by naming a new column df$xxx
+
+add a column using data.frame
+
+Note: these changes need to be "assigned" using "<-".
+
+```{r, echo=TRUE}
+
+df1 <- df1[1:5,1:3]
+rbind(df1,list("Tom", 44, "Toronto"))
+df1
+
+df2 <- rbind(df1,list("Tom", 44, "Toronto"))
+df2
+
+df1 <- cbind(df2,prov = c("BC","SA","ON","BC", "AB","ON"))
+
+prov2 <-c("BC","SA","ON","BC", "AB","ON")
+
+new_df <- data.frame(df2,prov2)
+
+```
+
+# deleting 
+
+removing rows and columns and changing data points
+
+```{r, echo=TRUE}
+
+str(df1)
+
+df1$prov <- NULL
+
+
+df1
+
+# similarly a row
+
+df1 <- df1[-6,]
+
+df1
+
+df1[df1  == 61] <- NA
+
+df1
+
+```
+
+
+# an aside on `str`
+
+`str` can be used on just about anything.
+
+```{r, echo=TRUE}
+data("CAN05AA008")
+
+str(df)
+str(CAN05AA008)
+str(mean)
+str(ch_binned_MannWhitney)
+
+
+```
+
+
+
+# an aside on "::" and ":::"
+
+
+You can reference an external package function directly without loading the package using "::"
+You can reference an internal package function directly without loading the package using ":::"
+
+
+```{r, echo=TRUE}
+
+Kendall::MannKendall
+
+# Kendall::summary.Kendall
+
+Kendall:::summary.Kendall
+```

@@ -1,0 +1,135 @@
+---
+title: "1_graphic_devices"
+author: "Paul Whitfield"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+require(R.devices)
+require(grDevices)
+```
+
+
+# Graphic devices
+
+R provides a variety of ways for creating plots and image files.  Sometimes, it is easy to get lost amongst the acronyms and unknown devices.  This section provides examples and some basin information about these.
+
+There are quite a variety of options arcoss the devices, some are common and others ...
+
+
+# pdf
+
+
+```{r, echo = TRUE, result = "hide",  message=FALSE, warning=FALSE }
+
+pdf(here::here("output","GaussianDensity.pdf"), width=7, height=0.6*7) 
+curve(dnorm, from=-5, to=+5) 
+dev.off()
+
+
+
+str(devOptions("pdf"))
+```
+
+# png
+
+
+
+```{r, echo = TRUE, result = "hide",  message=FALSE, warning=FALSE }
+
+png(here::here("output","GaussianDensity.png"), width=480, height=0.6*480) 
+curve(dnorm, from=-5, to=+5) 
+dev.off()
+
+str(devOptions("png"))
+
+```
+
+
+## common devices
+
+# raster
+
+# jpeg: JPEG bitmap device
+JPEG (Joint Photographic Experts Group) is a commonly used method of lossy compression for digital images, particularly for those images produced by digital photography. The degree of compression can be adjusted, allowing a selectable tradeoff between storage size and image quality. JPEG typically achieves 10:1 compression with little perceptible loss in image quality.[3] Since its introduction in 1992, JPEG has been the most widely used image compression standard in the world.
+
+# png: PNG bitmap device
+PNG stands for “Portable Graphics Format”. It is the most frequently used uncompressed raster image format on the internet. This lossless data compression format was created to replace the Graphics Interchange Format (GIF). PNG file format is an open format with no copyright limitations.
+
+# tiff: Tiff bitmap device
+Tag Image File Format, abbreviated TIFF or TIF, is a lossless image file format for storing raster graphics images, popular among graphic artists, the publishing industry,[1] and photographers. TIFF is widely supported by scanning, faxing, word processing, optical character recognition, image manipulation, desktop publishing, and page-layout applications. The format was created by the Aldus Corporation for use in desktop publishing.
+High quality print graphics.
+
+# bmp: BMP bitmap device
+The BMP file format, also known as bitmap image file, device independent bitmap (DIB) file format and bitmap, is a raster graphics image file format used to store bitmap digital images, independently of the display device.
+
+
+
+# vector
+
+
+# pdf: write pdf graphic commands to file
+Portable Document Format (PDF), standardized as ISO 32000, is a file format developed by Adobe in 1992 to present documents, including text formatting and images, in a manner independent of application software, hardware, and operating systems.[2][3] Based on the PostScript language, each PDF file encapsulates a complete description of a fixed-layout flat document, including the text, fonts, vector graphics, raster images and other information needed to display it.
+High quality print graphics,
+
+# cairo_pdf:PDF and PostScript devices based on cairo graphics
+cairo is an open-source graphics library that provides a vector graphics-based, device-independent API for software developers. It provides primitives for two-dimensional drawing across a number of different back ends. Cairo uses hardware acceleration when available.
+
+# postscript: write postscript graphic commands to file
+
+# svg SVG device based on cairo graphics
+Scalable Vector Graphics (SVG) is an XML-based vector image format for two-dimensional graphics with support for interactivity and animation. The SVG specification is an open standard developed by the World Wide Web Consortium (W3C) since 1999. SVG images are defined in a vector graphics format and stored in XML text files. SVG images can thus be scaled in size without loss of quality, and SVG files can be searched, indexed, scripted, and compressed. The XML text files can be created and edited with text editors or vector graphics editors, and are rendered by the most-used web browsers.
+
+
+
+# x11: graphics for the X11 windowing system on unix
+The X Window System (X11, or simply X) is a windowing system for bitmap displays, common on Unix-like operating systems. X provides the basic framework for a GUI environment: drawing and moving windows on the display device and interacting with a mouse and keyboard. X does not mandate the user interface – this is handled by individual programs. As such, the visual styling of X-based environments varies greatly; different programs may present radically different interfaces.
+
+
+## other devices
+
+# windows On Windows only, the graphics device for Windows (on screen, to printer and to Windows metafile)
+
+# quartz: macOS native Quartz 2d graphics system
+In Apple's macOS operating system, Quartz is the Quartz 2D and Quartz Compositor part of the Core Graphics framework.
+
+
+# xfig: Device for XFIG graphics file format
+
+# pictex: Writes TeX/PicTeX graphics commands to a file (of historical interest only)
+
+
+
+# options
+
+
+```{r, echo = TRUE, result = "hide",  message=FALSE, warning=FALSE }
+
+devOptions()[,c("width","height","bg","fg","pointsize")]
+
+
+```
+
+
+## multiple files
+
+Some output devices let you use a construct that generates a single file for each plot and sequenctially numbers them.
+
+
+```{r, echo = TRUE, result = "hide",  message=FALSE, warning=FALSE }
+
+cairo_pdf(here::here("output","rplot%03d.pdf"))
+curve(dnorm, from=-5, to=+5) 
+
+curve(dnorm, from=-5, to=+5) 
+
+curve(dnorm, from=-5, to=+5) 
+dev.off()
+
+
+```
+
+
