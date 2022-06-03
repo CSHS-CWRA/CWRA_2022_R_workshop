@@ -859,8 +859,8 @@ Get the mean daily discharge for each hydro year. Plot the values.
 
 ## Challenge 3
 
-Classify the flows by quarter: q1 = Jan-Mar, q2 = April-June,
+Classify the daily flows by quarter: q1 = Jan-Mar, q2 = April-June,
 q3 = July-September, q4 = October-December.
-Plot the flows facetted by each quarter using **ggplot2**
+Plot histograms of the daily flows facetted by each quarter using **ggplot2**
 with the function `facet_wrap`.
 
