@@ -162,8 +162,8 @@ and create the output
 
 
 ## Basic R tasks
-The file `Introduction_to_R_Tutorial.Rmd` contains exercises to
-work through. 
+The Notebook `Introduction_to_R_Tutorial.Rmd` contains exercises to
+work through
 
 - If you haven't used **R** very much, start at the beginning
 - If you are finding these too easy, skip to the **Advanced R** section
