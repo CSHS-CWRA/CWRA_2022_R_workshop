@@ -49,12 +49,13 @@ advance Truth and Reconciliation.
 other environmental data
 - We don't assume any background in **R**
 - The workshop will consist of several different topics
-  - each will be introduced with a short slide presentation
-  - followed by a tutorial for you to work through step by step  
+  - will have some slide presentations
+  - mostly tutorials for you to work through step-by-step  
+- Please ask **lots** of questions!  
   
   
 ## CSHShydRology
-- The workshop is based on the new **R* package `CSHShydRology`
+- The workshop is based on the new **R** package `CSHShydRology`
 - Developed by Canadian hydrologists for Canadian users
   - works with Canadian data sets
   - provides a "home" for Canadian hydrological **R** code  
