@@ -28,6 +28,20 @@ classoption: "aspectratio=169"
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+## Indigenous Land Acknowledgement
+ The 2022 CWRA Conference is being held in Canmore. The Town of Canmore is located within
+Treaty 7 region of Southern Alberta. In the spirit of respect, reciprocity and truth, we honour
+and acknowledge the Canmore area, known as “Chuwapchipchiyan Kudi Bi” (translated in
+Stoney Nakoda as “shooting at the willows”) and the traditional Treaty 7 territory and oral
+practices of the Îyârhe Nakoda (Stoney Nakoda) – comprised of the Bearspaw First Nation,
+Chiniki First Nation, and Wesley First Nation – as well as the Tsuut’ina First Nation and the
+Blackfoot Confederacy comprised of the Siksika, Piikani, Kainai. We acknowledge that this
+territory is home to the Métis Nation of Alberta, Region 3, within the historical Northwest Métis
+homeland. We acknowledge all Nations who live, work, and play and help us steward this land
+and honour and celebrate this territory. We commit to working to live in right relations and to
+advance Truth and Reconciliation.
+
+
 
 ## Introduction
 
