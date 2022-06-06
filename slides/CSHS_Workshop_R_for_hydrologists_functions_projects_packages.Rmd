@@ -159,6 +159,7 @@ on the Commit button
 
 
 ## Exercise
+- Note - this can't be done on Rstudio Cloud
 - Create a new project in a new directory
 - Check "Create a git repository"
 - Don't check "Use renv with this project"
@@ -185,6 +186,15 @@ on the Commit button
 - When you create a project, you select Version Control and then indicate the source to clone from
 
 ![](figures/new_project.png){width=40%}  ![](figures/git.png){width=40%}  
+
+## Example exercise
+- This can't be done on RStudio Cloud
+- Create a local copy of the workshop project
+git@github.com:CSHS-CWRA/CWRA_2022_R_workshop.git
+
+- If you are using the RStudio Cloud, you are already
+using the project
+
 
 ## **R** Packages
 - **R** packages are a special type of project

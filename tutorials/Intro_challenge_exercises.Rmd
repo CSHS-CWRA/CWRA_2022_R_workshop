@@ -1,0 +1,107 @@
+---
+title: "Introduction challenge exercises"
+author: "Kevin Shook"
+date: "June 5, 2022"
+output: pdf_document
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Challenge 1
+
+Using the `ifelse` function, create a new column "hydroyear"
+in the CAN01AD002 data frame. If the month is 10 or greater,
+the hydro year is one greater than the year. Otherwise, it is the
+current year. Hint: you can use the `format` command to get the month
+from the date.
+
+```{r}
+library(CSHShydRology)
+CAN01AD002 <- CAN01AD002
+CAN01AD002$year <- as.numeric(format(CAN01AD002$date, format = "%Y"))
+CAN01AD002$month <- as.numeric(format(CAN01AD002$date, format = "%m"))
+CAN01AD002$hydroyear <- ifelse(CAN01AD002$month < 10, CAN01AD002$year, CAN01AD002$year + 1)
+summary(CAN01AD002)
+```
+
+## Challenge 2
+
+Get the mean daily discharge for each hydro year. Plot the values.
+```{r echo = TRUE}
+hydro_year_mean <- aggregate(flow~hydroyear, data = CAN01AD002, FUN = "mean")
+summary(hydro_year_mean)
+```
+### Using standard plotting
+```{r echo = TRUE}
+plot(hydro_year_mean, xlab = "Hydro year", ylab = "Mean daily discharge (m³/s)",
+     main = "WSC Gauge 01AD002", type = "l")
+```
+### Using ggplot2
+```{r echo = TRUE}
+library(ggplot2)
+p <- ggplot(hydro_year_mean, aes(hydroyear, flow)) +
+  geom_line() +
+  xlab("Hydro year") +
+  ylab("Mean daily discharge (m³/s)") +
+  ggtitle("WSC Gauge 01AD002")
+
+p
+
+```
+
+## Challenge 3
+
+Classify the daily flows by quarter: Q1 = Jan-Mar, Q2 = April-June,
+Q3 = July-September, Q4 = October-December.
+Plot histograms of the daily flows facetted by each quarter using **ggplot2**
+with the function `facet_wrap`.
+
+### Solve using `ifelse`
+
+```{r echo = TRUE, warning=FALSE}
+
+CAN01AD002$quarter <- ifelse(CAN01AD002$month <= 3, "Q1", 
+                             ifelse(CAN01AD002$month <= 6, "Q2", 
+                                    ifelse(CAN01AD002$month <= 9, "Q3", "Q4")))
+summary(CAN01AD002)
+```
+
+### Plot using **ggplot2**
+
+```{r echo = TRUE, warning=FALSE, message=FALSE}
+
+p <- ggplot(CAN01AD002, aes(flow)) +
+  geom_histogram() +
+  xlab("Daily discharge (m³/s)") +
+  ylab("Number of days") +
+  ggtitle("WSC Gauge 01AD002") +
+  facet_wrap(~quarter) 
+p
+```
+
+### Solve using factors
+
+```{r}
+CAN01AD002$quarter <- ifelse(CAN01AD002$month <= 3, "Jan-Mar", 
+                             ifelse(CAN01AD002$month <= 6, "Apr-Jun", 
+                                    ifelse(CAN01AD002$month <= 9, "Jul-Sept", "Oct-Dec")))
+
+CAN01AD002$quarter <- factor(CAN01AD002$quarter, 
+                             levels = c("Jan-Mar", "Apr-Jun", "Jul-Sept", "Oct-Dec"))
+summary(CAN01AD002)
+```
+### Plot using **ggplot2**
+
+```{r echo = TRUE, warning=FALSE, message=FALSE}
+
+p2 <- ggplot(CAN01AD002, aes(flow)) +
+  geom_histogram() +
+  xlab("Daily discharge (m³/s)") +
+  ylab("Number of days") +
+  ggtitle("WSC Gauge 01AD002") +
+  facet_wrap(~quarter) 
+p2
+```
